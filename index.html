@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConstitutionKit — AI-first project constitutions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0c0c0c;--surface:#141414;--s2:#1c1c1c;--s3:#222;--border:#262626;--b2:#333;--accent:#c8f73f;--accent2:#ff6b35;--blue:#4fc3f7;--purple:#b39ddb;--text:#f0ede8;--muted:#888;--dim:#555;--green:#3ff79a;--r:6px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.6;min-height:100vh}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px}
+
+/* ── HEADER ── */
+header{padding:48px 0 40px;border-bottom:1px solid var(--border)}
+.logo-row{display:flex;align-items:center;gap:12px;margin-bottom:32px}
+.logo-mark{width:36px;height:36px;background:var(--accent);display:grid;place-items:center;border-radius:4px;flex-shrink:0}
+.logo-mark svg{width:20px;height:20px}
+.logo-text{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:-.02em}
+.logo-text span{color:var(--accent)}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(34px,5.5vw,60px);font-weight:800;line-height:1.0;letter-spacing:-.03em;margin-bottom:14px}
+.hero h1 .hl{color:var(--accent)}
+.hero p{font-size:13px;color:var(--muted);max-width:540px;line-height:1.75;margin-bottom:22px}
+.badges{display:flex;gap:7px;flex-wrap:wrap}
+.badge{font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid var(--border);color:var(--dim);letter-spacing:.04em}
+.badge.on{border-color:var(--accent);color:var(--accent)}
+.badge.blue{border-color:var(--blue);color:var(--blue)}
+
+/* ── STEP SHELL ── */
+.step{padding:40px 0;border-bottom:1px solid var(--border)}
+.step-hd{display:flex;align-items:baseline;gap:16px;margin-bottom:22px}
+.step-n{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.step-t{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.02em}
+
+/* ── TOOL CARDS ── */
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.tool-card{background:var(--surface);border:2px solid var(--border);border-radius:8px;padding:18px;cursor:pointer;transition:border-color .15s,background .15s;position:relative;overflow:hidden;user-select:none}
+.tool-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .2s}
+.tool-card:hover{border-color:#3a3a3a;background:var(--s2)}
+.tool-card.selected{border-color:var(--accent);background:#151a05}
+.tool-card.selected::before{transform:scaleX(1)}
+.tck{width:18px;height:18px;border:2px solid var(--border);border-radius:3px;margin-bottom:10px;display:grid;place-items:center;transition:background .15s,border-color .15s;flex-shrink:0}
+.tool-card.selected .tck{background:var(--accent);border-color:var(--accent)}
+.tck svg{display:none}.tool-card.selected .tck svg{display:block}
+.t-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:3px}
+.t-file{font-size:11px;color:var(--accent);font-weight:500;margin-bottom:7px}
+.t-desc{font-size:11px;color:var(--muted);line-height:1.6}
+
+/* ── PROJECT TYPE ── */
+.type-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:24px}
+.type-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 14px;cursor:pointer;transition:border-color .15s,background .15s;user-select:none}
+.type-card:hover{border-color:#3a3a3a;background:var(--s2)}
+.type-card.selected{border-color:var(--blue);background:#081318}
+.type-icon{font-size:18px;margin-bottom:6px}
+.type-name{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--text)}
+.type-desc{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.5}
+
+/* ── STACK TAGS ── */
+.stack-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.stag{padding:4px 10px;border-radius:4px;border:1px solid var(--border);font-size:11px;color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s,background .15s;background:var(--surface)}
+.stag:hover{border-color:#3a3a3a;color:var(--text)}
+.stag.selected{border-color:var(--blue);color:var(--blue);background:#080e14}
+.stack-label{font-size:11px;color:var(--dim);margin-bottom:6px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+
+/* ── PRESETS ── */
+.presets-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px}
+.preset{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:5px;border:1px solid var(--border);background:var(--surface);font-size:12px;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'JetBrains Mono',monospace}
+.preset:hover{border-color:#444;color:var(--text);background:var(--s2)}
+.preset .pdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.preset-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+
+/* ── TAGS / PRINCIPLES ── */
+.category{margin-bottom:26px}
+.cat-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.cat-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:5px 10px;cursor:pointer;transition:border-color .15s,background .15s,color .15s;font-size:12px;color:var(--muted);position:relative}
+.tag:hover{border-color:#3a3a3a;color:var(--text);background:var(--s2)}
+.tag.selected{border-color:var(--accent);background:#131a03;color:var(--accent)}
+.tag-dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .15s}
+.tag.selected .tag-dot{background:var(--accent)}
+.tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#252525;border:1px solid #3a3a3a;border-radius:4px;padding:6px 10px;font-size:10px;color:var(--muted);pointer-events:none;opacity:0;transition:opacity .15s;z-index:20;max-width:230px;text-align:center;white-space:normal;line-height:1.5}
+.tag:hover .tip{opacity:1}
+.ctrl-row{display:flex;gap:8px;margin-bottom:14px;align-items:center}
+.btn-ghost{background:transparent;border:1px solid var(--border);border-radius:var(--r);padding:5px 12px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:border-color .15s,color .15s}
+.btn-ghost:hover{border-color:#555;color:var(--text)}
+.sel-count{font-size:11px;color:var(--dim);margin-left:auto}
+.sel-count span{color:var(--accent);font-weight:600}
+
+/* ── CONTEXT / COMMANDS ── */
+.field-group{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+@media(max-width:600px){.field-group{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:6px}
+.field-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.07em;text-transform:uppercase}
+.field-hint{font-size:10px;color:var(--dim);margin-top:2px;line-height:1.5}
+.f-input,.f-area{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;transition:border-color .2s;line-height:1.6;width:100%}
+.f-input:focus,.f-area:focus{border-color:var(--accent)}
+.f-input::placeholder,.f-area::placeholder{color:var(--dim)}
+.f-area{resize:vertical;min-height:64px}
+.f-wide{grid-column:1/-1}
+
+/* ── GENERATE ── */
+.gen-area{padding:36px 0;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.btn-gen{background:var(--accent);color:#0c0c0c;border:none;border-radius:var(--r);padding:13px 30px;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;cursor:pointer;letter-spacing:-.01em;transition:opacity .2s,transform .1s;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.btn-gen:hover{opacity:.9;transform:translateY(-1px)}
+.btn-gen:active{transform:translateY(0)}
+.gen-note{font-size:11px;color:var(--dim);line-height:1.7;max-width:300px}
+.share-btn{background:transparent;border:1px solid var(--border);border-radius:var(--r);padding:10px 16px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:border-color .15s,color .15s;display:flex;align-items:center;gap:6px}
+.share-btn:hover{border-color:#555;color:var(--text)}
+
+/* ── ERR ── */
+.err{display:none;background:#1a0e0e;border:1px solid #5a2a2a;border-radius:var(--r);padding:11px 15px;font-size:12px;color:#ff8a80;line-height:1.6}
+.err.on{display:block}
+
+/* ── RESULT ── */
+.result{display:none;padding:40px 0}
+.result.on{display:block}
+.result-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:0;flex-wrap:wrap}
+.result-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:-.02em}
+.view-toggle{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.vt-btn{padding:6px 14px;font-size:11px;color:var(--muted);cursor:pointer;background:var(--surface);border:none;font-family:'JetBrains Mono',monospace;transition:background .15s,color .15s}
+.vt-btn.on{background:var(--s2);color:var(--text)}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-top:16px;overflow-x:auto}
+.tab{padding:8px 16px;font-size:11px;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .15s;font-family:'JetBrains Mono',monospace}
+.tab:hover{color:var(--muted)}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.pane{display:none}.pane.on{display:block}
+.editor{width:100%;min-height:500px;background:var(--surface);border:1px solid var(--border);border-radius:0 0 8px 8px;padding:20px 22px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;outline:none;resize:vertical;border-top:none}
+.preview{display:none;background:var(--surface);border:1px solid var(--border);border-radius:0 0 8px 8px;padding:28px 32px;min-height:400px;border-top:none;overflow-y:auto;max-height:700px}
+.preview.on{display:block}
+/* markdown preview styles */
+.preview h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin-bottom:16px;letter-spacing:-.02em}
+.preview h2{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin:28px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);letter-spacing:-.01em}
+.preview h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin:20px 0 6px}
+.preview p{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.8}
+.preview ul,.preview ol{margin:6px 0 12px 20px}
+.preview li{font-size:12px;color:var(--muted);margin-bottom:4px;line-height:1.7}
+.preview li strong{color:var(--text)}
+.preview blockquote{border-left:3px solid var(--accent);padding:8px 14px;margin:14px 0;background:#0f1200;border-radius:0 4px 4px 0}
+.preview blockquote p{color:var(--dim);margin:0}
+.preview code{background:var(--s2);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-size:11px;color:var(--blue)}
+.preview hr{border:none;border-top:1px solid var(--border);margin:24px 0}
+.preview strong{color:var(--text)}
+.result-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:8px}
+.result-note{font-size:11px;color:var(--dim)}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.btn-act{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:6px 13px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;transition:border-color .15s,color .15s,background .15s;display:flex;align-items:center;gap:5px}
+.btn-act:hover{border-color:#444;color:var(--text);background:#252525}
+.btn-act.ok{border-color:var(--green);color:var(--green)}
+
+/* ── FOOTER ── */
+footer{padding:32px 0;border-top:1px solid var(--border);margin-top:40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.fl{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--border);transition:color .15s;font-size:11px}
+.fl:hover{color:var(--accent)}
+footer p{font-size:11px;color:var(--dim);line-height:1.7}
+
+/* ── SCROLL ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fi{animation:fadeIn .3s ease both}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<header>
+  <div class="logo-row">
+    <div class="logo-mark">
+      <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" fill="#0c0c0c"/><rect x="11" y="2" width="7" height="7" fill="#0c0c0c"/><rect x="2" y="11" width="7" height="7" fill="#0c0c0c"/><rect x="11" y="11" width="7" height="3" fill="#0c0c0c"/><rect x="15" y="15" width="3" height="3" fill="#0c0c0c"/></svg>
+    </div>
+    <span class="logo-text">Constitution<span>Kit</span></span>
+  </div>
+  <div class="hero">
+    <h1>Your project's<br><span class="hl">engineering constitution.</span></h1>
+    <p>Generate a production-ready <code>constitution.md</code> or <code>CLAUDE.md</code> tailored to your stack, team, and principles. Built for teams shipping with agentic AI. Runs entirely in your browser — no account, no server.</p>
+    <div class="badges">
+      <span class="badge on">spec-kit</span>
+      <span class="badge on">Claude Code</span>
+      <span class="badge on">agentic AI</span>
+      <span class="badge blue">no account needed</span>
+      <span class="badge">open source · MIT</span>
+    </div>
+  </div>
+</header>
+
+<!-- STEP 1: TOOL -->
+<div class="step">
+  <div class="step-hd"><span class="step-n">Step 01</span><h2 class="step-t">Choose your tool</h2></div>
+  <div class="tool-grid">
+    <div class="tool-card selected" data-tool="spec-kit" onclick="toggleTool(this)">
+      <div class="tck"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="#0c0c0c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="t-name">spec-kit</div>
+      <div class="t-file">→ constitution.md</div>
+      <div class="t-desc">Foundational principles and behavioral contracts for the whole project. Read by humans and AI agents alike.</div>
+    </div>
+    <div class="tool-card" data-tool="claude-code" onclick="toggleTool(this)">
+      <div class="tck"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="#0c0c0c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="t-name">Claude Code</div>
+      <div class="t-file">→ CLAUDE.md</div>
+      <div class="t-desc">Agent-specific instructions: allowed tools, forbidden paths, project commands, and autonomy boundaries.</div>
+    </div>
+    <div class="tool-card" data-tool="both" onclick="toggleTool(this)">
+      <div class="tck"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke="#0c0c0c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="t-name">Both</div>
+      <div class="t-file">→ constitution.md + CLAUDE.md</div>
+      <div class="t-desc">Generate both files. CLAUDE.md will reference the constitution rather than duplicate it.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 2: PROJECT TYPE + STACK -->
+<div class="step">
+  <div class="step-hd"><span class="step-n">Step 02</span><h2 class="step-t">Project type &amp; stack</h2></div>
+
+  <div class="type-grid" id="typeGrid">
+    <div class="type-card selected" data-type="web-app" onclick="toggleType(this)">
+      <div class="type-icon">🌐</div>
+      <div class="type-name">Web App</div>
+      <div class="type-desc">SPA / SSR / fullstack web product</div>
+    </div>
+    <div class="type-card" data-type="microservices" onclick="toggleType(this)">
+      <div class="type-icon">🔗</div>
+      <div class="type-name">Microservices</div>
+      <div class="type-desc">Distributed services with APIs</div>
+    </div>
+    <div class="type-card" data-type="data-pipeline" onclick="toggleType(this)">
+      <div class="type-icon">🔄</div>
+      <div class="type-name">Data Pipeline</div>
+      <div class="type-desc">ETL, streaming, analytics, ML</div>
+    </div>
+    <div class="type-card" data-type="ai-system" onclick="toggleType(this)">
+      <div class="type-icon">🤖</div>
+      <div class="type-name">AI System</div>
+      <div class="type-desc">Agentic, LLM-powered, or AI-first</div>
+    </div>
+    <div class="type-card" data-type="platform" onclick="toggleType(this)">
+      <div class="type-icon">⚙️</div>
+      <div class="type-name">Platform / SDK</div>
+      <div class="type-desc">Developer tooling, libraries, APIs</div>
+    </div>
+    <div class="type-card" data-type="mobile" onclick="toggleType(this)">
+      <div class="type-icon">📱</div>
+      <div class="type-name">Mobile App</div>
+      <div class="type-desc">iOS, Android, or cross-platform</div>
+    </div>
+  </div>
+
+  <div class="stack-label">Tech stack <span style="color:var(--dim);font-weight:400;letter-spacing:0;text-transform:none">(pick all that apply)</span></div>
+  <div class="stack-row" id="stackRow">
+    <div class="stag" onclick="toggleStack(this)">Next.js</div>
+    <div class="stag" onclick="toggleStack(this)">React</div>
+    <div class="stag" onclick="toggleStack(this)">Vue</div>
+    <div class="stag" onclick="toggleStack(this)">Node.js</div>
+    <div class="stag" onclick="toggleStack(this)">Go</div>
+    <div class="stag" onclick="toggleStack(this)">Python</div>
+    <div class="stag" onclick="toggleStack(this)">Rust</div>
+    <div class="stag" onclick="toggleStack(this)">Java / Spring</div>
+    <div class="stag" onclick="toggleStack(this)">PostgreSQL</div>
+    <div class="stag" onclick="toggleStack(this)">MongoDB</div>
+    <div class="stag" onclick="toggleStack(this)">Redis</div>
+    <div class="stag" onclick="toggleStack(this)">Kafka</div>
+    <div class="stag" onclick="toggleStack(this)">GraphQL</div>
+    <div class="stag" onclick="toggleStack(this)">tRPC</div>
+    <div class="stag" onclick="toggleStack(this)">Docker</div>
+    <div class="stag" onclick="toggleStack(this)">Kubernetes</div>
+    <div class="stag" onclick="toggleStack(this)">AWS</div>
+    <div class="stag" onclick="toggleStack(this)">GCP</div>
+    <div class="stag" onclick="toggleStack(this)">Terraform</div>
+    <div class="stag" onclick="toggleStack(this)">TypeScript</div>
+    <div class="stag" onclick="toggleStack(this)">React Native</div>
+    <div class="stag" onclick="toggleStack(this)">LangChain</div>
+    <div class="stag" onclick="toggleStack(this)">Anthropic API</div>
+  </div>
+</div>
+
+<!-- STEP 3: PRINCIPLES -->
+<div class="step">
+  <div class="step-hd"><span class="step-n">Step 03</span><h2 class="step-t">Select principles</h2></div>
+
+  <div class="preset-label">Quick presets</div>
+  <div class="presets-row" id="presetsRow">
+    <div class="preset" onclick="applyPreset('ai-first')"><span class="pdot" style="background:#c8f73f"></span>AI-First Stack</div>
+    <div class="preset" onclick="applyPreset('startup')"><span class="pdot" style="background:#ff6b35"></span>Startup Speed</div>
+    <div class="preset" onclick="applyPreset('enterprise')"><span class="pdot" style="background:#4fc3f7"></span>Enterprise Grade</div>
+    <div class="preset" onclick="applyPreset('security')"><span class="pdot" style="background:#b39ddb"></span>Security-Critical</div>
+    <div class="preset" onclick="applyPreset('all')"><span class="pdot" style="background:#888"></span>Everything</div>
+    <div class="preset" onclick="clearAll()"><span class="pdot" style="background:#555"></span>Clear all</div>
+  </div>
+
+  <div class="ctrl-row">
+    <button class="btn-ghost" onclick="selectAll()">Select all</button>
+    <button class="btn-ghost" onclick="clearAll()">Clear all</button>
+    <span class="sel-count"><span id="selCount">0</span> selected</span>
+  </div>
+  <div id="principalsArea"></div>
+</div>
+
+<!-- STEP 4: CONTEXT -->
+<div class="step">
+  <div class="step-hd"><span class="step-n">Step 04</span><h2 class="step-t">Project details</h2></div>
+  <div class="field-group">
+    <div class="field f-wide">
+      <div class="field-label">Project description <span style="color:var(--dim);font-weight:400;text-transform:none">— optional</span></div>
+      <textarea class="f-area" id="projectContext" placeholder='e.g. "A SaaS B2B platform for construction teams, built with Next.js and Go. Team of 8 engineers. We ship fast but reliability is critical."' style="min-height:70px"></textarea>
+    </div>
+    <div class="field">
+      <div class="field-label">Build / test commands</div>
+      <div class="field-hint">Used in CLAUDE.md so the agent knows how to run the project</div>
+      <textarea class="f-area" id="cmdBuild" placeholder="npm run build&#10;npm test&#10;npm run lint"></textarea>
+    </div>
+    <div class="field">
+      <div class="field-label">Forbidden paths</div>
+      <div class="field-hint">Directories the agent must never touch autonomously</div>
+      <textarea class="f-area" id="cmdForbidden" placeholder=".env&#10;secrets/&#10;migrations/&#10;infra/production/"></textarea>
+    </div>
+    <div class="field">
+      <div class="field-label">Key directories</div>
+      <div class="field-hint">Important folders in your project structure</div>
+      <textarea class="f-area" id="cmdDirs" placeholder="src/   — application code&#10;tests/ — test suite&#10;docs/  — documentation&#10;infra/ — IaC"></textarea>
+    </div>
+    <div class="field">
+      <div class="field-label">Agent autonomy level</div>
+      <div class="field-hint">How much the agent can do without asking</div>
+      <select class="f-input" id="autonomyLevel" style="cursor:pointer">
+        <option value="low">Low — ask before every significant change</option>
+        <option value="medium" selected>Medium — ask on scope changes, proceed on clear tasks</option>
+        <option value="high">High — proceed autonomously, summarise after</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="field-label">Team size</div>
+      <div class="field-hint">Influences collaboration and review conventions</div>
+      <select class="f-input" id="teamSize" style="cursor:pointer">
+        <option value="solo">Solo</option>
+        <option value="small" selected>Small (2–8)</option>
+        <option value="medium">Medium (9–30)</option>
+        <option value="large">Large (30+)</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- GENERATE -->
+<div class="gen-area">
+  <button class="btn-gen" onclick="generate()"><span id="genLabel">⚡ Generate constitution.md</span></button>
+  <button class="share-btn" onclick="shareURL(this)" title="Copy a shareable link with your current selections">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="10" cy="2" r="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="10" cy="11" r="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="2" cy="6.5" r="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3.3 5.8L8.7 3M8.7 10L3.3 7.2" stroke="currentColor" stroke-width="1.2"/></svg>
+    Share config
+  </button>
+  <div class="gen-note">100% browser-side. No API, no account. Edit the output before downloading.</div>
+</div>
+<div class="err" id="errMsg"></div>
+
+<!-- RESULT -->
+<div class="result" id="resultSection">
+  <div class="result-hd">
+    <div class="result-title">Generated files</div>
+    <div class="view-toggle">
+      <button class="vt-btn on" id="vt-raw" onclick="setView('raw')">Raw</button>
+      <button class="vt-btn" id="vt-preview" onclick="setView('preview')">Preview</button>
+    </div>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div id="panes"></div>
+  <div class="result-foot">
+    <div class="result-note">✏️ Edit directly in the textarea, then download.</div>
+    <div class="actions" id="actions"></div>
+  </div>
+</div>
+
+<footer>
+  <p>Open source · MIT · Runs 100% in your browser<br>
+    <a href="https://github.com" class="fl">View on GitHub</a> &nbsp;·&nbsp;
+    <a href="https://docs.anthropic.com/en/docs/claude-code/memory" class="fl">CLAUDE.md docs</a> &nbsp;·&nbsp;
+    <a href="https://github.com/specfy/spec-kit" class="fl">spec-kit</a>
+  </p>
+  <p>ConstitutionKit v2.0</p>
+</footer>
+
+</div><!-- /wrap -->
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════
+
+const PRINCIPLES = {
+  "Software Engineering": [
+    {id:"solid",label:"SOLID",desc:"Five OO design principles for maintainable, flexible code",
+     what:"Five object-oriented design principles that produce maintainable, flexible, and understandable code.",
+     rules:["Each class/module has exactly one reason to change (Single Responsibility).","Extend behaviour through new code, not by modifying existing code (Open/Closed).","Subtypes must be substitutable for their base types without breaking correctness (Liskov).","Prefer many small, focused interfaces over one large general-purpose one (Interface Segregation).","Depend on abstractions, not concretions — inject dependencies rather than instantiating them (Dependency Inversion)."],
+     enforce:"Class-size lint rules; code review checklist includes SOLID verification."},
+    {id:"dry",label:"DRY",desc:"Don't Repeat Yourself — single source of truth for every piece of knowledge",
+     what:"Every piece of knowledge — logic, data structure, decision — has a single authoritative representation.",
+     rules:["Extract shared logic into reusable functions, hooks, or utilities rather than copy-pasting.","Configuration values live in one place; all consumers reference that source.","Apply DRY to knowledge, not just syntax — similar-looking code with different intent stays separate.","Duplication spotted in review is a refactor opportunity, not a minor issue."],
+     enforce:"Code review flags duplication. Shared utilities are preferred over inline repetition."},
+    {id:"kiss",label:"KISS",desc:"Keep It Simple — avoid unnecessary complexity",
+     what:"Solutions should be as simple as possible but no simpler. Complexity is a liability that compounds.",
+     rules:["Default to the simplest solution that satisfies the requirement; add complexity only when proven necessary.","Clever code is a red flag — if it requires a comment to explain what it does, rewrite it.","Prefer flat structures over deeply nested ones.","A longer but readable function beats a terse but opaque one-liner."],
+     enforce:"Cyclomatic complexity thresholds in CI. Peer review asks 'why not simpler?'"},
+    {id:"yagni",label:"YAGNI",desc:"You Aren't Gonna Need It — build for today, not imagined futures",
+     what:"Do not add functionality until it is actually needed. Speculative generality creates dead weight.",
+     rules:["No abstractions, generics, or extension points without a concrete current use case.","Delete unused code rather than commenting it out 'just in case'.","Deferred requirements stay in the backlog, not in the codebase.","When in doubt between a general and a specific solution, ship the specific one first."],
+     enforce:"Dead code detection in CI. PRs with unused abstractions require explicit justification."},
+    {id:"clean-code",label:"Clean Code",desc:"Readable, expressive, self-documenting code that communicates intent",
+     what:"Code is written for humans first, machines second. Readability is a first-class engineering value.",
+     rules:["Names must reveal intent — avoid abbreviations and single-letter identifiers outside of loops.","Functions do one thing. If you need 'and' to describe it, split it.","No magic numbers or strings — all constants are named and documented.","Side effects are minimised, explicit, and expected by callers."],
+     enforce:"Linting enforces naming conventions. Readability is a first-class code review criterion."},
+    {id:"tdd",label:"TDD",desc:"Test-Driven Development — red, green, refactor",
+     what:"Tests are written before implementation. This forces clarity of intent and produces a living specification.",
+     rules:["Write a failing test that describes the desired behaviour before writing any production code.","Write the minimal code required to make the test pass — nothing more.","Refactor ruthlessly once green, keeping tests passing throughout.","Test coverage is a by-product of TDD, not a goal to chase with hollow tests."],
+     enforce:"CI enforces minimum coverage thresholds. No feature PR is merged without accompanying tests."},
+    {id:"refactoring",label:"Refactoring",desc:"Continuous improvement of internal structure without changing observable behaviour",
+     what:"Refactoring is a first-class engineering activity, not optional cleanup.",
+     rules:["Leave code cleaner than you found it (Boy Scout Rule).","Refactoring is done in dedicated commits, separate from feature or bug-fix commits.","No refactor is performed without test coverage in place first.","Large-scale refactors are broken into incremental, reviewable steps."],
+     enforce:"Tech debt tracked in backlog. Refactoring time budgeted in sprint planning."},
+  ],
+  "Testing Strategy": [
+    {id:"test-pyramid",label:"Test Pyramid",desc:"Unit > integration > E2E — fast, reliable, layered coverage",
+     what:"The test pyramid ensures fast feedback and high confidence. Most tests are unit tests; fewer are slow E2E tests.",
+     rules:["Unit tests cover logic in isolation, with no I/O, in milliseconds.","Integration tests verify that components work correctly together (DB, queue, API boundary).","E2E tests cover critical user journeys only — they are expensive and should be few.","The ratio target: 70% unit / 20% integration / 10% E2E."],
+     enforce:"Test type tracked in CI reporting. E2E suite growth requires justification."},
+    {id:"contract-testing",label:"Contract Testing",desc:"Verify API contracts between services without full integration environments",
+     what:"Consumer-driven contract tests ensure services remain compatible as they evolve independently.",
+     rules:["Every service-to-service API has a consumer-driven contract test (e.g. Pact).","Contract tests run in CI before any deployment that touches a shared API.","Breaking a contract is treated as a breaking change and requires coordination.","Contract tests live with the consumer, not the provider."],
+     enforce:"Pact broker or equivalent tracks contract versions. CI gate prevents contract violations shipping."},
+    {id:"property-testing",label:"Property-Based Testing",desc:"Discover edge cases by generating inputs automatically",
+     what:"Property-based tests express invariants that must hold for all inputs, not just hand-picked examples.",
+     rules:["Use property-based testing for parsing, serialisation, and algorithmic logic.","Express properties as invariants: 'for all inputs of type X, Y is always true'.","Run property tests with a fixed seed in CI; explore locally with random seeds.","Shrink failing inputs automatically to the minimal reproducing case."],
+     enforce:"Property tests are encouraged for core domain logic. Framework: fast-check / hypothesis / QuickCheck."},
+    {id:"test-isolation",label:"Test Isolation",desc:"Tests are independent, deterministic, and leave no side effects",
+     what:"Flaky or order-dependent tests are bugs. Every test must be runnable in any order, any number of times.",
+     rules:["Each test sets up its own state and tears it down — no shared mutable fixtures.","Tests never depend on execution order or the output of another test.","Time, randomness, and external services are controlled via injection or mocking.","A flaky test is treated as a failing test until fixed."],
+     enforce:"Flaky test tracker in CI. Flaky tests are quarantined and fixed within one sprint."},
+    {id:"mutation-testing",label:"Mutation Testing",desc:"Validate test suite effectiveness by injecting code mutations",
+     what:"Mutation testing verifies that tests actually catch bugs, not just execute lines.",
+     rules:["Mutation testing is run periodically on critical modules (not every commit).","Surviving mutants are reviewed — they indicate under-specified behaviour.","Mutation score target is set per module based on criticality.","Mutation testing complements coverage; coverage alone does not imply quality."],
+     enforce:"Mutation testing run quarterly or before major releases. Results reviewed in architecture sessions."},
+  ],
+  "Error Handling & Resilience": [
+    {id:"fail-fast",label:"Fail Fast",desc:"Surface errors immediately at the point of failure — never swallow exceptions",
+     what:"Errors should be caught and reported at the earliest possible point. Silent failures cause cascading disasters.",
+     rules:["Never swallow exceptions with an empty catch block.","Validate configuration and invariants at startup — refuse to start if the environment is wrong.","Assertions in critical code paths are kept in production, not stripped by build flags.","Errors bubble up with full context — wrap with cause chains, not just rethrow."],
+     enforce:"Linting prohibits empty catch blocks. Startup validation is part of the definition of done."},
+    {id:"circuit-breaker",label:"Circuit Breaker",desc:"Prevent cascading failures by stopping calls to unhealthy dependencies",
+     what:"Circuit breakers detect when a dependency is failing and stop sending traffic, giving it time to recover.",
+     rules:["Every call to an external dependency that can fail (HTTP, DB, queue) has a circuit breaker.","Circuit breakers have three states: closed, open, half-open. State transitions are observable.","Fallback behaviour is defined and tested for every open circuit.","Thresholds (failure rate, timeout) are tuned per dependency based on observed behaviour."],
+     enforce:"Circuit breaker state is a monitored metric. Fallback paths are tested in chaos exercises."},
+    {id:"retry-backoff",label:"Retry & Backoff",desc:"Retry transient failures with exponential backoff and jitter",
+     what:"Transient failures are expected. Retries must avoid thundering herd through backoff and jitter.",
+     rules:["Retry only operations that are idempotent or explicitly safe to retry.","Use exponential backoff with jitter — never fixed-interval retries.","Set a maximum retry count and a maximum total elapsed time budget.","Log retry attempts with attempt number, delay, and reason."],
+     enforce:"Retry logic is centralised (not scattered). Retry budgets reviewed in performance testing."},
+    {id:"graceful-degradation",label:"Graceful Degradation",desc:"Continue serving core functionality when non-critical dependencies fail",
+     what:"When parts of the system fail, the rest continues to function. Core paths never depend on optional features.",
+     rules:["Identify the critical path for every user-facing feature and protect it explicitly.","Non-critical enrichment (recommendations, analytics, personalisation) fails silently with a sensible default.","Degraded mode is a designed state — it is tested, not discovered in production.","Users see informative messaging when degraded, not error pages."],
+     enforce:"Degradation modes documented per feature. Chaos testing validates degraded behaviour."},
+    {id:"bulkhead",label:"Bulkhead Pattern",desc:"Isolate failures to prevent them spreading across the system",
+     what:"Bulkheads isolate components so a failure in one does not exhaust resources needed by others.",
+     rules:["Separate thread pools or connection pools are used for different downstream dependencies.","A slow or failing dependency cannot consume all available connections/threads.","Resource limits are explicit: max connections, max queue depth, max concurrent requests.","Bulkhead configuration is externalised and observable."],
+     enforce:"Resource pool configuration reviewed in capacity planning. Bulkhead effectiveness tested under load."},
+    {id:"chaos-engineering",label:"Chaos Engineering",desc:"Proactively inject failures to validate system resilience",
+     what:"Chaos engineering is controlled experimentation to uncover weaknesses before incidents do.",
+     rules:["Define steady-state behaviour before running chaos experiments.","Start with small blast radius (single instance, non-production) and expand gradually.","Every chaos experiment has a clear hypothesis, a stop condition, and a rollback plan.","Findings from chaos runs are treated as bugs and tracked to resolution."],
+     enforce:"Chaos experiments run in staging at minimum. Game days scheduled before major launches."},
+  ],
+  "API Design": [
+    {id:"api-conventions",label:"REST Conventions",desc:"Consistent, predictable, resource-oriented HTTP API design",
+     what:"APIs are contracts. Consistency and predictability reduce integration friction across all consumers.",
+     rules:["Resources are nouns, plural, lowercase-kebab: /users, /payment-methods.","HTTP verbs carry semantic meaning: GET reads, POST creates, PUT replaces, PATCH updates, DELETE removes.","HTTP status codes are used correctly — 400 for client errors, 500 for server errors, 404 only when the resource genuinely does not exist.","Never expose internal implementation details (DB column names, internal IDs) in public API responses."],
+     enforce:"API design review before implementation. OpenAPI spec is the contract; generated clients are tested."},
+    {id:"api-versioning",label:"API Versioning",desc:"Version all APIs; never break existing consumers without a migration path",
+     what:"API consumers cannot keep up with your release cadence. Versioning gives them time to migrate.",
+     rules:["All public APIs are versioned from day one (/v1/...).","Breaking changes require a new major version; old versions are deprecated, not deleted.","Deprecation notices are communicated with at least 90 days notice and a migration guide.","Additive changes (new optional fields) are backwards-compatible and do not require a version bump."],
+     enforce:"Breaking change check runs in CI. Version sunset dates tracked and communicated."},
+    {id:"idempotency",label:"Idempotency",desc:"All mutating operations are safe to retry without duplicate side effects",
+     what:"Network conditions are unreliable. Callers must be able to retry without causing double-processing.",
+     rules:["POST endpoints that create resources accept and honour an Idempotency-Key header.","Idempotency keys are stored long enough for reasonable retry windows (24h minimum).","Duplicate detection is tested explicitly, not assumed.","DELETE, PUT, and PATCH operations are naturally idempotent — enforce this in implementation."],
+     enforce:"Idempotency is part of the API design checklist. Duplicate request handling tested in contract tests."},
+    {id:"pagination",label:"Pagination & Filtering",desc:"Consistent patterns for list endpoints — cursor-based, filterable, sortable",
+     what:"List endpoints must be consistent and performant. Unbounded result sets are a reliability risk.",
+     rules:["All list endpoints are paginated — no endpoint returns an unbounded collection.","Cursor-based pagination is preferred over offset for large or frequently-updated datasets.","Filtering and sorting parameters follow a consistent convention across all endpoints.","Total counts are optional and behind a parameter — they are expensive."],
+     enforce:"API review requires pagination for all list endpoints. Performance test list endpoints with large datasets."},
+    {id:"rate-limiting",label:"Rate Limiting",desc:"Protect APIs with explicit rate limits, clear error responses, and Retry-After headers",
+     what:"Rate limits protect the system from abuse and ensure fair usage across consumers.",
+     rules:["All public APIs have rate limits. Limits are documented and communicated.","Rate limit errors return 429 with a Retry-After header and a human-readable message.","Rate limit buckets are per-user and per-IP at minimum; per-endpoint where critical.","Internal services are rate-limited too — assume any caller can misbehave."],
+     enforce:"Rate limiting enforced at the gateway. Limits tuned based on load testing data."},
+  ],
+  "Data & State Management": [
+    {id:"schema-migrations",label:"Schema Migrations",desc:"All DB schema changes are versioned, reversible, and compatible",
+     what:"Schema changes are among the riskiest operations in a running system. They demand discipline.",
+     rules:["All schema changes are expressed as versioned migration files, committed to the repo.","Migrations are backwards-compatible where possible — add before remove (expand/contract pattern).","Every migration has a down migration unless explicitly documented as irreversible.","Migrations are tested on a copy of production data before being applied to production."],
+     enforce:"Schema migrations are reviewed by two engineers. Prod migration rehearsal is mandatory."},
+    {id:"data-integrity",label:"Data Integrity",desc:"Database constraints are the last line of defence — use them",
+     what:"Application code is buggy. Database constraints enforce invariants that code cannot.",
+     rules:["Referential integrity is enforced with foreign keys — soft enforcement in application alone is insufficient.","NOT NULL, UNIQUE, and CHECK constraints are added at the database level for all applicable columns.","Cascading deletes are explicit and documented — accidental data loss is treated as a production incident.","Transactions are used for operations that must succeed or fail atomically."],
+     enforce:"Database schema reviewed for constraint coverage. ORM raw queries require explicit review."},
+    {id:"soft-delete",label:"Soft Deletes",desc:"Delete by marking, not by removing — enable audit trails and recovery",
+     what:"Data is often more valuable than it appears at deletion time. Soft deletes prevent accidental permanent loss.",
+     rules:["Entities that may need recovery or auditing use soft deletes (deleted_at timestamp).","Queries must explicitly filter deleted records — application code never returns soft-deleted rows by default.","Hard deletion runs on a delayed schedule with explicit approval.","Audit logs capture who deleted what and when."],
+     enforce:"Soft delete pattern applied consistently per entity. Audit log coverage verified in code review."},
+    {id:"data-privacy",label:"Data Privacy & Retention",desc:"GDPR/privacy-by-design, retention policies, and right to erasure",
+     what:"User data is a liability as well as an asset. Collect only what you need; delete what you no longer need.",
+     rules:["Personal data is identified, mapped, and classified at the point of collection.","Retention policies are defined per data class and enforced automatically.","Right to erasure is implemented and testable — deletion must propagate across all stores.","Data is anonymised before being used in analytics, staging, or development environments."],
+     enforce:"Data privacy review in the feature launch gate. Erasure tested annually with real requests."},
+    {id:"event-sourcing",label:"Event Sourcing",desc:"Store state as a sequence of immutable events — reconstruct state on demand",
+     what:"Event sourcing provides an audit trail, temporal queries, and decoupled projections as first-class features.",
+     rules:["Events are immutable once written — never mutated or deleted in normal operation.","The event stream is the source of truth; projections are derived and can be rebuilt.","Events are versioned and schema-evoluted carefully (upcasters for old event formats).","Event store reads are always sequential; projections can be parallelised."],
+     enforce:"Event schema registry tracks all event versions. Projection rebuild tested in staging."},
+  ],
+  "Software Architecture": [
+    {id:"clean-arch",label:"Clean Architecture",desc:"Dependency rule: entities → use cases → adapters → frameworks",
+     what:"Business logic is independent of UI, databases, and external systems. Dependencies point inward.",
+     rules:["Domain entities contain only business rules — no framework imports, no database references.","Use cases orchestrate entities; they depend on nothing outside the domain.","Adapters translate between use cases and external systems (HTTP, DB, queues).","The outermost layer (frameworks, drivers) is interchangeable without touching core logic."],
+     enforce:"Dependency-direction linting. Architecture fitness functions in CI validate layer boundaries."},
+    {id:"ddd",label:"Domain-Driven Design",desc:"Ubiquitous language, bounded contexts, aggregates, and domain events",
+     what:"The software model reflects the business domain. Language is shared between engineers and domain experts.",
+     rules:["Establish a ubiquitous language: the same terms are used in code, docs, and conversations.","Define bounded contexts explicitly — each context owns its model and schema.","Aggregates enforce consistency boundaries; cross-aggregate communication goes via events.","Domain events are first-class citizens, named in past tense (OrderPlaced, UserDeactivated)."],
+     enforce:"Bounded context diagrams maintained in repo. Cross-context coupling triggers review discussion."},
+    {id:"microservices",label:"Microservices",desc:"Independently deployable services with explicit API contracts",
+     what:"Services are sized around business capabilities, deployed independently, and communicate over explicit contracts.",
+     rules:["Each service owns its data store — no shared databases between services.","API contracts (OpenAPI / AsyncAPI) are versioned and co-located with the service.","Services are designed to fail gracefully — circuit breakers, retries, and fallbacks are built in.","Service boundaries are drawn around business capabilities, not technical layers."],
+     enforce:"Contract tests run in CI. Breaking changes to public APIs require a version bump."},
+    {id:"hexagonal",label:"Hexagonal Architecture",desc:"Ports & adapters — decouple core logic from infrastructure",
+     what:"The application core is surrounded by ports (interfaces) and adapters (implementations). Infrastructure is pluggable.",
+     rules:["All external dependencies are accessed via ports defined in the domain.","Adapters implement ports; they are swappable without changing core logic.","Tests use in-memory adapters to run fast and without external dependencies.","The application is runnable with any combination of adapters."],
+     enforce:"Integration tests verify real adapters; unit tests use fakes."},
+    {id:"adr",label:"Architecture Decision Records",desc:"Document the why behind every significant architectural choice",
+     what:"ADRs are short structured records that capture context, decision, and consequences.",
+     rules:["Any decision hard to reverse or affecting multiple teams requires an ADR.","ADRs follow the format: Title, Status, Context, Decision, Consequences.","ADRs live in /docs/adr/ and are committed with the changes they accompany.","Superseded ADRs are marked as such and never deleted."],
+     enforce:"Significant PRs reference their ADR. Architecture reviews begin by reading relevant ADRs."},
+    {id:"twelve-factor",label:"12-Factor App",desc:"Config, stateless processes, dev/prod parity, disposable infrastructure",
+     what:"The twelve-factor methodology produces portable, resilient services that scale horizontally.",
+     rules:["All config is in environment variables — no config files checked into the repo.","Processes are stateless and share nothing; persistent state lives in backing services.","Dev, staging, and production environments are as identical as possible.","The app starts fast and shuts down gracefully on SIGTERM."],
+     enforce:"Config validation on startup. Dev environment containerised to match prod."},
+  ],
+  "Agentic AI Patterns": [
+    {id:"task-decomposition",label:"Task Decomposition",desc:"Break complex goals into verifiable, scoped subtasks before executing",
+     what:"Agents that tackle large tasks monolithically make large mistakes. Decomposition enables checkpoints and course-correction.",
+     rules:["Before executing any multi-step task, produce a plan and surface it for review if scope is large.","Each subtask has a clear success criterion that can be evaluated without running subsequent steps.","Decomposition is iterative — subtasks can spawn further subtasks but must converge.","Tasks with unclear success criteria are clarified with the user before execution begins."],
+     enforce:"Agent outputs plans as first message for complex tasks. Plans are logged for auditability."},
+    {id:"human-in-the-loop",label:"Human-in-the-Loop",desc:"Define explicit checkpoints where the agent must pause and confirm before proceeding",
+     what:"Full autonomy without oversight is a liability. Checkpoints are not friction — they are trust-building.",
+     rules:["Before any irreversible action (delete, deploy, send), the agent must confirm with the user.","When the agent is uncertain about intent, it asks one targeted clarifying question — not a list.","Checkpoints are defined per task class (e.g. 'always confirm before touching the database schema').","The agent expresses confidence level alongside its plan — low confidence triggers a checkpoint."],
+     enforce:"Irreversible action list is maintained in CLAUDE.md. Agent logs all checkpoint decisions."},
+    {id:"tool-use-boundaries",label:"Tool Use Boundaries",desc:"Explicit allow/deny list for tools the agent may use autonomously",
+     what:"Agents with broad tool access can cause broad damage. Tool permissions are the blast radius control.",
+     rules:["Every project defines an explicit list of tools the agent may use without asking.","Tools with side effects (write, delete, deploy, send) require higher autonomy level to use unilaterally.","Tool use is logged with the intent, parameters, and result for every invocation.","The agent declines to use a tool if it cannot articulate why it is necessary for the current task."],
+     enforce:"Tool allow/deny list maintained in CLAUDE.md. Tool use log reviewed in incident post-mortems."},
+    {id:"agent-memory",label:"Agent Memory & Context",desc:"Manage context window deliberately — summarise, chunk, retrieve; never assume continuity",
+     what:"Agents have no persistent memory across sessions. Every session starts fresh; context must be explicitly provided.",
+     rules:["Project state relevant to the agent is captured in CLAUDE.md and kept current.","Long context is summarised at defined thresholds — do not pad the context window with stale history.","The agent explicitly states when it is relying on recalled (not observed) information.","Context from previous sessions is re-provided via structured files, not conversational recall."],
+     enforce:"CLAUDE.md is updated as the project evolves. Context quality is part of agent session review."},
+    {id:"agent-testing",label:"Agentic Testing",desc:"Test agent behaviour with defined scenarios, golden traces, and regression suites",
+     what:"Agent behaviour is non-deterministic but testable. Evals are the test suite for agentic systems.",
+     rules:["Every agent capability has at least one golden trace (input → expected plan → expected output).","Evals cover both happy paths and adversarial inputs (ambiguous instructions, conflicting constraints).","A regression in eval scores blocks merging prompt or agent logic changes.","Agent evals run on every change to CLAUDE.md or system prompts."],
+     enforce:"Eval suite is version-controlled alongside the agent code. Score history tracked over time."},
+    {id:"multi-agent",label:"Multi-Agent Coordination",desc:"Define clear roles, communication contracts, and arbitration rules between agents",
+     what:"Multi-agent systems need explicit orchestration. Without it, agents conflict, duplicate work, or deadlock.",
+     rules:["Each agent has a clearly scoped role — no two agents are responsible for the same output.","Agents communicate via structured messages with explicit schemas, not freeform text.","An orchestrator agent or human mediates when agents produce conflicting outputs.","Shared state between agents is explicit and versioned, never implicit."],
+     enforce:"Multi-agent architecture documented in ADR. Agent role assignments reviewed before each system change."},
+    {id:"prompt-versioning",label:"Prompt Versioning",desc:"Treat prompts as code — version, review, and test every change",
+     what:"Prompts are the source code of AI behaviour. Unversioned prompt changes are unreviewed deployments.",
+     rules:["All prompts (system, user templates) are stored in version control.","Prompt changes go through PR review with at least one eval run attached.","Prompt versions are tagged alongside model versions — behaviour depends on both.","Production prompt rollback is a first-class operation, as fast as a code rollback."],
+     enforce:"Prompt registry tracks current production versions. Eval gate in CI for prompt PRs."},
+    {id:"spec-writing",label:"Spec Writing for Agents",desc:"Write specs that agents can execute — unambiguous, verifiable, scoped",
+     what:"Agents execute specs literally. Ambiguous or incomplete specs produce unpredictable behaviour.",
+     rules:["Every spec has a clear scope statement: what is in and what is explicitly out.","Acceptance criteria are machine-verifiable where possible (tests pass, linter clean, file exists).","Specs reference prior context explicitly — agents cannot infer from conversation history.","Specs call out known constraints: forbidden patterns, required libraries, performance budgets."],
+     enforce:"Spec quality review before agent execution. Spec template maintained in /docs/spec-template.md."},
+  ],
+  "UX & Design": [
+    {id:"accessibility",label:"Accessibility (a11y)",desc:"WCAG 2.1 AA, semantic HTML, keyboard navigation, screen reader support",
+     what:"Every user deserves a usable product. Accessibility is a baseline requirement, not an add-on.",
+     rules:["All interactive elements are reachable and operable via keyboard alone.","Colour contrast meets WCAG 2.1 AA minimums (4.5:1 body text, 3:1 large text).","All images have meaningful alt text; decorative images use alt=\"\".","Forms use native label associations; error messages are linked with aria-describedby."],
+     enforce:"axe-core runs in CI. Manual keyboard and screen-reader testing required before release."},
+    {id:"user-centered",label:"User-Centered Design",desc:"Empathy-first, research-driven, iterative design process",
+     what:"Design decisions are grounded in real user research, not assumptions or internal preferences.",
+     rules:["Every major feature begins with a user need statement backed by evidence.","Prototypes are tested with real users before high-fidelity implementation.","Usability issues found in testing block release — they are not deferred to UX polish.","Metrics (task completion, error rate, satisfaction) are defined per feature and tracked."],
+     enforce:"UX review gates in the feature lifecycle. Research findings documented and shared."},
+    {id:"design-system",label:"Design System",desc:"Shared tokens, reusable components, and consistent patterns across the product",
+     what:"A single source of truth for visual and interactive patterns, reducing inconsistency and rework.",
+     rules:["All UI is built from design system components — custom one-off styles require justification.","Design tokens (colour, spacing, typography) are the only values used in implementations.","New patterns are added to the design system before use in product code.","Design system documentation is co-located with the component code."],
+     enforce:"Storybook serves as the living design system. Visual regression tests run in CI."},
+    {id:"mobile-first",label:"Mobile-First",desc:"Design and develop for small screens first, enhance progressively",
+     what:"Mobile constraints reveal design priorities. Build for the smallest screen, then enhance.",
+     rules:["CSS is written mobile-first using min-width breakpoints.","Touch targets are a minimum of 44×44px.","No functionality is exclusively available on desktop without a documented exception.","Performance budgets account for slow mobile networks (3G baseline)."],
+     enforce:"Responsive testing is part of QA. Lighthouse mobile scores tracked."},
+  ],
+  "Security": [
+    {id:"owasp",label:"OWASP Top 10",desc:"Defend against the most critical web application security risks",
+     what:"The OWASP Top 10 is the baseline security checklist for every feature handling user data or external input.",
+     rules:["All user input is validated, sanitised, and escaped at trust boundaries.","Authentication tokens are stored securely; sessions expire and invalidate on logout.","Sensitive data is encrypted at rest and in transit; PII is not logged.","Access control is enforced server-side on every request — never trust client assertions."],
+     enforce:"OWASP-aligned checklist in PR template. DAST scanning in CI pipeline."},
+    {id:"zero-trust",label:"Zero Trust",desc:"Never trust, always verify — no implicit trust from network location",
+     what:"Every access request is authenticated and authorized regardless of origin.",
+     rules:["Every service-to-service call is authenticated with short-lived, scoped credentials.","Network location confers no implicit trust.","All access is logged and monitored for anomalies.","Lateral movement is prevented through strict network segmentation."],
+     enforce:"Service mesh enforces mTLS. IAM policies reviewed quarterly."},
+    {id:"least-privilege",label:"Least Privilege",desc:"Every actor and process has the minimum permissions required",
+     what:"Access rights are tightly scoped to what is necessary. Excess permissions are a liability.",
+     rules:["IAM roles, DB users, and API tokens are scoped to minimum required permissions.","Elevated permissions are time-limited and require justification.","Service accounts do not share credentials with human accounts.","Permission grants are reviewed when roles or responsibilities change."],
+     enforce:"IAM audits on a regular cadence. PR review required for new permission grants."},
+    {id:"secrets-mgmt",label:"Secrets Management",desc:"No hardcoded secrets, rotation policies, and vault integration",
+     what:"Secrets are never in code, never in committed config files, and always rotated.",
+     rules:["Zero secrets in source code — pre-commit hooks and CI scanning reject violations.","All secrets are sourced from a secrets manager at runtime.","Secrets are rotated on a documented schedule and immediately upon suspected compromise.","Development secrets are separate from production secrets."],
+     enforce:"git-secrets / truffleHog in CI. Rotation schedule tracked in security backlog."},
+    {id:"input-validation",label:"Input Validation",desc:"Validate, sanitise, and escape all inputs at every trust boundary",
+     what:"No external input is trusted. Every boundary between trust levels applies strict validation.",
+     rules:["Validate input type, length, format, and range at the API boundary.","Use an allowlist approach — reject anything not explicitly permitted.","Sanitise HTML input before rendering; use context-appropriate escaping.","File uploads are validated for type, size, and content — never executed."],
+     enforce:"Schema validation libraries required for all API endpoints. SQL parameterisation enforced."},
+    {id:"defense-in-depth",label:"Defense in Depth",desc:"Multiple independent layers of security controls",
+     what:"No single security control is assumed sufficient. Layers of defence limit blast radius.",
+     rules:["Security controls exist at every layer: network, application, data, host.","Assume breach: design systems to limit attacker movement post-access.","Monitor and alert at each layer independently.","Regular penetration testing validates layer effectiveness."],
+     enforce:"Security architecture review for new systems. Incident response runbook maintained."},
+  ],
+  "Performance": [
+    {id:"caching",label:"Caching Strategy",desc:"Deliberate cache layers with explicit TTLs and invalidation strategies",
+     what:"Caching is a first-class design decision. Every cache layer has an owner and a policy.",
+     rules:["Cache keys are deterministic and namespaced to avoid collisions.","TTLs are set explicitly — 'cache forever' is never acceptable.","Invalidation strategy is documented alongside every cache implementation.","Caches are treated as unreliable — the system degrades gracefully on cache miss."],
+     enforce:"Cache strategies documented in ADRs. Cache hit rates monitored in dashboards."},
+    {id:"profiling",label:"Measure First",desc:"Profile and benchmark before optimising — all performance work is data-driven",
+     what:"Premature optimisation is the root of much evil. Every performance investment is justified by measurement.",
+     rules:["Establish a performance baseline before any optimisation work begins.","Use profiling tools to identify actual bottlenecks, not perceived ones.","Performance budgets (LCP, TTI, API p99) are defined and tracked.","Optimisations that cannot be measured are not merged."],
+     enforce:"Performance budgets in CI. Regression alerts for key user-facing metrics."},
+    {id:"scalability",label:"Horizontal Scalability",desc:"Stateless, shared-nothing design that scales by adding instances",
+     what:"Services scale horizontally without architectural changes. State is externalised.",
+     rules:["Application processes hold no in-memory state between requests.","Sessions, caches, and queues are in external backing services.","Auto-scaling is configured and tested under load.","No single points of failure — every component has a failover strategy."],
+     enforce:"Load tests run in staging. Stateful patterns fail architecture review."},
+    {id:"db-optimization",label:"DB Optimisation",desc:"Query planning, indexing, N+1 prevention, and connection pooling",
+     what:"The database is usually the bottleneck. Every query is written with intent and validated.",
+     rules:["All new queries are reviewed with EXPLAIN ANALYZE in staging.","Indexes are added alongside queries that will use them.","ORMs must be configured to detect and prevent N+1 query patterns.","Connection pools are sized explicitly; unbounded pools are prohibited."],
+     enforce:"Slow query logging with alerting. Query reviews in the backend PR checklist."},
+  ],
+  "Developer Experience": [
+    {id:"local-dev",label:"Local Dev Environment",desc:"Any engineer can be productive from a fresh checkout in under 30 minutes",
+     what:"The local development loop is the most-used tool in the engineering workflow. It must be fast and reliable.",
+     rules:["A single command bootstraps the full local environment (docker compose up, make dev, etc.).","The README setup instructions are tested by someone other than the author before merging.","Local hot reload works for all layers — frontend, backend, and worker processes.","Target: a new hire ships their first diff within their first day."],
+     enforce:"Onboarding time is tracked. Setup breakages are P1 bugs."},
+    {id:"inner-loop",label:"Inner Loop Speed",desc:"Edit → run → test loop must be sub-second for unit tests, sub-10s for integration",
+     what:"Developer productivity is largely determined by feedback loop speed. Every second counts across thousands of iterations.",
+     rules:["Unit test suite runs in under 30 seconds locally.","Incremental builds rebuild only changed files — no full rebuilds on single-file edits.","Watch mode is supported for all test runners and linters.","CI provides targeted feedback: report which test failed and with what input, not just 'CI failed'."],
+     enforce:"Build time is a tracked metric. Regressions in build speed are treated as bugs."},
+    {id:"tooling-standards",label:"Tooling Standards",desc:"Standardised, automated formatting and linting — no style debates in code review",
+     what:"Style debates in code review are a waste of time. Automated tooling enforces consistency without human judgement.",
+     rules:["A single formatter (Prettier, gofmt, Black) runs automatically on save and on commit.","Linting rules are agreed-on and codified — no ad-hoc style comments in PRs.","Tooling configuration is committed to the repo — no per-engineer variation.","Pre-commit hooks run the same checks as CI; no surprises at push time."],
+     enforce:"Formatter and linter run in CI as a required check. PR is blocked if tooling fails."},
+    {id:"dependency-management",label:"Dependency Management",desc:"Lock files, audit policies, update cadence, and license compliance",
+     what:"Dependencies are third-party code you are responsible for. They need the same discipline as first-party code.",
+     rules:["Lock files are committed and kept up to date — no floating version ranges in production code.","Dependency audit runs in CI; critical vulnerabilities block deployment.","Dependencies are updated on a regular cadence (weekly automated PRs via Renovate/Dependabot).","All dependencies are reviewed for licence compatibility before adoption."],
+     enforce:"Audit in CI. Dependabot/Renovate configured on all repos. Licence check in dependency review."},
+    {id:"onboarding-docs",label:"Onboarding Documentation",desc:"New engineers are productive and confident within their first week",
+     what:"Onboarding is an investment in team velocity. Good docs remove the bus-factor risk and scale knowledge.",
+     rules:["An onboarding guide covers: environment setup, architecture overview, first PR workflow, and who to ask for what.","Architecture diagrams are maintained and dated — stale diagrams are worse than no diagrams.","A glossary captures domain terms and internal jargon.","Onboarding feedback is collected from every new joiner and actioned."],
+     enforce:"Onboarding doc completeness reviewed quarterly. New hire feedback loop tracked."},
+  ],
+  "DevOps & Delivery": [
+    {id:"ci-cd",label:"CI/CD",desc:"Automated pipelines, fast feedback loops, deploy on every green build",
+     what:"Every commit is a potential release. Automation ensures quality gates are never skipped.",
+     rules:["The main branch is always deployable.","CI pipeline runs in under 10 minutes — parallelise where needed.","All quality gates (tests, lint, security scans) run automatically on every PR.","Deployments are automated and one-click; manual steps are documented exceptions."],
+     enforce:"Branch protection requires CI green. DORA metrics tracked quarterly."},
+    {id:"iac",label:"Infrastructure as Code",desc:"All infrastructure is declared, versioned, and reproducible",
+     what:"No manual infrastructure changes. Everything is code, reviewed like code, and deployed like code.",
+     rules:["All infrastructure is declared in version-controlled IaC (Terraform, Pulumi, CDK).","Infrastructure changes go through the same PR review process as application code.","No manual changes to production infrastructure — drift triggers an alert.","IaC modules are reusable and documented."],
+     enforce:"Drift detection alerts. IaC PRs require second approver with infrastructure expertise."},
+    {id:"observability",label:"Observability",desc:"Structured logs, metrics, distributed traces — actionable alerting",
+     what:"You cannot fix what you cannot see. Observability is built into every service, not added after incidents.",
+     rules:["All logs are structured (JSON), include a trace ID, and go to a centralised aggregator.","Every service exposes the four golden signals: latency, traffic, errors, saturation.","Distributed traces are instrumented across service boundaries.","Alerts are actionable — no alert fires without a clear runbook."],
+     enforce:"Observability in the definition of done. Alert fatigue tracked and reduced."},
+    {id:"feature-flags",label:"Feature Flags",desc:"Decouple deployment from release; progressive rollouts and kill-switches",
+     what:"Features are deployed behind flags before release. Deployment ≠ release.",
+     rules:["All new user-facing features ship behind a flag.","Flags are short-lived — cleaned up within two sprints of full rollout.","Kill-switches exist for high-risk changes; tested in staging before release.","Flag state is logged and visible in dashboards."],
+     enforce:"Flag cleanup tracked in backlog. Flag inventory reviewed monthly."},
+    {id:"slo-sla",label:"SLOs & Error Budgets",desc:"Define reliability targets, track error budgets, and use them to prioritise work",
+     what:"Without explicit reliability targets, reliability is accidental. SLOs make reliability a first-class engineering constraint.",
+     rules:["Every user-facing service has defined SLOs (availability, latency p50/p99, error rate).","Error budget consumption is tracked and visible to the entire team.","When the error budget is exhausted, reliability work takes priority over feature work.","SLOs are reviewed and adjusted annually based on user expectations and business context."],
+     enforce:"SLO dashboards are team-visible. Error budget alerts notify on-call and engineering leads."},
+  ],
+  "Documentation": [
+    {id:"readme-driven",label:"README-Driven Dev",desc:"Write the README before writing the code",
+     what:"The README is the first artifact. It forces clarity of purpose before implementation.",
+     rules:["Every repository has a README: purpose, quick start, architecture overview, contribution guide.","The README is updated in the same PR as the code it documents.","Setup instructions are tested by someone other than the author.","The README links to deeper documentation rather than containing everything."],
+     enforce:"README completeness in the PR checklist. Outdated setup instructions block new-hire onboarding."},
+    {id:"api-docs",label:"API Documentation",desc:"OpenAPI/AsyncAPI specs, versioned contracts, worked examples",
+     what:"API documentation is a contract, not an afterthought. Consumers depend on it.",
+     rules:["Every public API endpoint is documented in an OpenAPI (REST) or AsyncAPI (events) spec.","Specs live in the repo, co-located with the service.","Examples are provided for every request and response.","Breaking changes increment the major version with a migration guide."],
+     enforce:"Spec-first development: spec merged before implementation. Contract tests validate conformance."},
+    {id:"changelog",label:"Changelog & SemVer",desc:"Conventional commits, semantic versioning, maintained CHANGELOG.md",
+     what:"Every release is documented. Consumers can assess upgrade impact at a glance.",
+     rules:["All commits follow Conventional Commits (feat, fix, chore, docs, refactor, etc.).","Versions follow Semantic Versioning (MAJOR.MINOR.PATCH) strictly.","CHANGELOG.md is updated as part of every release, not retroactively.","Breaking changes are flagged with BREAKING CHANGE: footer."],
+     enforce:"Commit linting in CI. Changelog diff reviewed in every release PR."},
+    {id:"decision-log",label:"Decision Log",desc:"ADRs, RFCs, and post-mortems — capture the why, not just the what",
+     what:"Decisions hard to reverse or affecting multiple people are written before they are enacted.",
+     rules:["Significant technical decisions use ADRs.","Post-mortems are written within 48 hours of every Severity 1 incident.","Decision documents are linked from the relevant code or configuration.","RFCs are used for cross-team proposals; they have explicit comment periods."],
+     enforce:"Architecture review gates reference the decision log. Post-mortem completion tracked."},
+  ],
+  "Collaboration": [
+    {id:"git-conventions",label:"Git Conventions",desc:"Conventional commits, consistent branch naming, signed commits",
+     what:"A consistent convention makes history navigable and automatable.",
+     rules:["Commits follow Conventional Commits: type(scope): description.","Branches follow type/short-description (e.g. feat/user-auth, fix/login-crash).","Feature branch commits are squashed; release branch merges are preserved.","Production deployments use signed commits."],
+     enforce:"Commit linting in pre-commit hook and CI."},
+    {id:"pr-standards",label:"PR Standards",desc:"Size limits, templates, and a clear review checklist",
+     what:"PRs are a unit of communication as much as a unit of change. Small, focused PRs are safer and faster to review.",
+     rules:["PRs are scoped to a single concern — mixing refactors with features is avoided.","Target PR size is under 400 lines of changed production code.","All PRs use the team PR template: summary, testing notes, screenshots for UI.","The author resolves review comments; the reviewer approves once resolved."],
+     enforce:"PR size alerts in CI. PR template enforced via repository settings."},
+    {id:"definition-of-done",label:"Definition of Done",desc:"A shared, explicit quality bar — nothing is done until it clears the DoD",
+     what:"Done means done. The DoD is the team's shared agreement on what constitutes shippable work.",
+     rules:["Code is written, reviewed, and merged.","All automated tests pass; new behaviour has test coverage.","Documentation is updated in the same PR.","The change is deployed to staging and smoke-tested."],
+     enforce:"DoD checklist in PR template. Story points are not credited until DoD is satisfied."},
+    {id:"async-first",label:"Async-First",desc:"Written async communication by default; meetings are the last resort",
+     what:"Deep work requires uninterrupted time. Async is the default; synchronous meetings are for what async cannot handle.",
+     rules:["Decisions are written up before scheduling a meeting to discuss them.","Meetings have a written agenda and produce written outcomes and action items.","Real-time communication is for urgent, ambiguous, or emotionally complex matters.","Response time expectations are explicit: async messages warrant a response within one business day."],
+     enforce:"Meeting load is tracked. Meeting hygiene is a recurring retrospective topic."},
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// PRESETS
+// ═══════════════════════════════════════════════════════════════════
+
+const PRESETS = {
+  "ai-first": ["task-decomposition","human-in-the-loop","tool-use-boundaries","agent-memory","agent-testing","prompt-versioning","spec-writing","tdd","clean-code","adr","observability","ci-cd","eval-driven","context-management"],
+  "startup":  ["kiss","yagni","dry","clean-code","tdd","ci-cd","observability","readme-driven","git-conventions","pr-standards","definition-of-done","feature-flags","local-dev","inner-loop","dependency-management"],
+  "enterprise":["solid","clean-arch","ddd","adr","test-pyramid","contract-testing","schema-migrations","data-integrity","data-privacy","owasp","zero-trust","least-privilege","secrets-mgmt","defense-in-depth","slo-sla","iac","gitops","changelog","decision-log","pr-standards","async-first","onboarding-docs"],
+  "security": ["owasp","zero-trust","least-privilege","input-validation","secrets-mgmt","defense-in-depth","data-privacy","data-integrity","fail-fast","tdd","test-isolation","changelog","adr","ci-cd"],
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+
+let selectedTools = new Set(['spec-kit']);
+let selectedType  = 'web-app';
+let selectedStack = new Set();
+let selectedPrinciples = new Set();
+let generatedFiles = {};
+let currentView = 'raw';
+let activeTabKey = null;
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT + URL STATE
+// ═══════════════════════════════════════════════════════════════════
+
+function init() {
+  renderPrinciples();
+  loadFromURL();
+  updateCount();
+}
+
+function loadFromURL() {
+  try {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    const params = new URLSearchParams(hash);
+    if (params.get('tools')) {
+      selectedTools = new Set(params.get('tools').split(','));
+      document.querySelectorAll('.tool-card').forEach(c => {
+        c.classList.toggle('selected', selectedTools.has(c.dataset.tool));
+      });
+    }
+    if (params.get('type')) {
+      selectedType = params.get('type');
+      document.querySelectorAll('.type-card').forEach(c => {
+        c.classList.toggle('selected', c.dataset.type === selectedType);
+      });
+    }
+    if (params.get('stack')) {
+      selectedStack = new Set(params.get('stack').split(','));
+      document.querySelectorAll('.stag').forEach(t => {
+        if (selectedStack.has(t.textContent)) t.classList.add('selected');
+      });
+    }
+    if (params.get('p')) {
+      params.get('p').split(',').forEach(id => {
+        selectedPrinciples.add(id);
+        const el = document.querySelector(`.tag[data-id="${id}"]`);
+        if (el) el.classList.add('selected');
+      });
+    }
+    updateCount();
+    updateGenLabel();
+  } catch(e) {}
+}
+
+function saveToURL() {
+  const params = new URLSearchParams();
+  params.set('tools', [...selectedTools].join(','));
+  params.set('type', selectedType);
+  if (selectedStack.size) params.set('stack', [...selectedStack].join(','));
+  if (selectedPrinciples.size) params.set('p', [...selectedPrinciples].join(','));
+  history.replaceState(null, '', '#' + params.toString());
+}
+
+function shareURL(btn) {
+  saveToURL();
+  navigator.clipboard.writeText(window.location.href).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Link copied!';
+    setTimeout(() => { btn.innerHTML = orig; }, 2000);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RENDER PRINCIPLES
+// ═══════════════════════════════════════════════════════════════════
+
+function renderPrinciples() {
+  const area = document.getElementById('principalsArea');
+  area.innerHTML = '';
+  for (const [cat, items] of Object.entries(PRINCIPLES)) {
+    const d = document.createElement('div'); d.className = 'category';
+    const l = document.createElement('div'); l.className = 'cat-label'; l.textContent = cat; d.appendChild(l);
+    const t = document.createElement('div'); t.className = 'tags';
+    items.forEach(item => {
+      const tag = document.createElement('div');
+      tag.className = 'tag'; tag.dataset.id = item.id;
+      tag.onclick = () => togglePrinciple(item.id, tag);
+      tag.innerHTML = `<div class="tag-dot"></div><span>${item.label}</span><div class="tip">${item.desc}</div>`;
+      t.appendChild(tag);
+    });
+    d.appendChild(t); area.appendChild(d);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INTERACTIONS
+// ═══════════════════════════════════════════════════════════════════
+
+function toggleTool(card) {
+  const tool = card.dataset.tool;
+  if (tool === 'both') {
+    document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedTools = new Set(['both']);
+  } else {
+    document.querySelector('.tool-card[data-tool="both"]').classList.remove('selected');
+    selectedTools.delete('both');
+    card.classList.contains('selected')
+      ? (card.classList.remove('selected'), selectedTools.delete(tool))
+      : (card.classList.add('selected'), selectedTools.add(tool));
+    if (!selectedTools.size) { card.classList.add('selected'); selectedTools.add(tool); }
+  }
+  updateGenLabel();
+}
+
+function toggleType(card) {
+  document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedType = card.dataset.type;
+}
+
+function toggleStack(tag) {
+  const name = tag.textContent;
+  tag.classList.contains('selected')
+    ? (tag.classList.remove('selected'), selectedStack.delete(name))
+    : (tag.classList.add('selected'), selectedStack.add(name));
+}
+
+function togglePrinciple(id, el) {
+  selectedPrinciples.has(id)
+    ? (selectedPrinciples.delete(id), el.classList.remove('selected'))
+    : (selectedPrinciples.add(id), el.classList.add('selected'));
+  updateCount();
+}
+
+function selectAll() {
+  Object.values(PRINCIPLES).flat().forEach(i => selectedPrinciples.add(i.id));
+  document.querySelectorAll('.tag').forEach(t => t.classList.add('selected'));
+  updateCount();
+}
+
+function clearAll() {
+  selectedPrinciples.clear();
+  document.querySelectorAll('.tag').forEach(t => t.classList.remove('selected'));
+  updateCount();
+}
+
+function applyPreset(name) {
+  clearAll();
+  const ids = name === 'all'
+    ? Object.values(PRINCIPLES).flat().map(i => i.id)
+    : (PRESETS[name] || []);
+  ids.forEach(id => {
+    selectedPrinciples.add(id);
+    const el = document.querySelector(`.tag[data-id="${id}"]`);
+    if (el) el.classList.add('selected');
+  });
+  updateCount();
+}
+
+function updateCount() { document.getElementById('selCount').textContent = selectedPrinciples.size; }
+
+function updateGenLabel() {
+  const tools = selectedTools.has('both') ? ['spec-kit','claude-code'] : [...selectedTools];
+  document.getElementById('genLabel').textContent = '⚡ Generate ' + tools.map(t => t==='spec-kit'?'constitution.md':'CLAUDE.md').join(' + ');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// GENERATORS
+// ═══════════════════════════════════════════════════════════════════
+
+function groupSelected() {
+  const out = {};
+  for (const [cat, items] of Object.entries(PRINCIPLES)) {
+    const picked = items.filter(i => selectedPrinciples.has(i.id));
+    if (picked.length) out[cat] = picked;
+  }
+  return out;
+}
+
+function stackLine() {
+  return selectedStack.size ? [...selectedStack].join(', ') : 'not specified';
+}
+
+const TYPE_LABELS = {
+  'web-app':'Web Application','microservices':'Microservices','data-pipeline':'Data Pipeline',
+  'ai-system':'AI System','platform':'Platform / SDK','mobile':'Mobile App'
+};
+
+function buildConstitution(context) {
+  const date = new Date().toISOString().split('T')[0];
+  const grouped = groupSelected();
+  const typeLabel = TYPE_LABELS[selectedType] || selectedType;
+
+  let md = `# constitution.md\n\n`;
+  if (context) md += `> **Project:** ${context}\n>\n`;
+  md += `> **Project type:** ${typeLabel}  \n`;
+  md += `> **Tech stack:** ${stackLine()}  \n`;
+  md += `> **Generated:** ${date}\n\n`;
+  md += `> This document defines the non-negotiable principles, architectural decisions, and behavioral contracts that guide this project. It is the authoritative reference for all contributors — human and AI alike.\n\n---\n\n`;
+  md += `## Guiding philosophy\n\nGood software is not an accident. It emerges from deliberate, shared decisions about how we work, what we value, and what we refuse to compromise on. This constitution captures those decisions.\n\nWhen a situation is ambiguous, return to these principles. When two principles conflict, use judgment and document the trade-off as an Architecture Decision Record.\n\n`;
+  md += `> **Operating model:** This project uses agentic AI tooling (Claude Code / spec-kit). Every AI agent working on this codebase is expected to read, understand, and apply this constitution. Principles are not suggestions — they are constraints.\n\n---\n\n`;
+
+  // Summary table
+  md += `## Principles at a glance\n\n| Category | Principles |\n|---|---|\n`;
+  for (const [cat, items] of Object.entries(grouped)) {
+    md += `| ${cat} | ${items.map(i => i.label).join(', ')} |\n`;
+  }
+  md += `\n---\n\n`;
+
+  for (const [cat, items] of Object.entries(grouped)) {
+    md += `## ${cat}\n\n`;
+    for (const item of items) {
+      md += `### ${item.label}\n\n${item.what}\n\n**How we apply this:**\n\n`;
+      item.rules.forEach(r => { md += `- ${r}\n`; });
+      md += `\n**Enforcement:** ${item.enforce}\n\n`;
+    }
+  }
+
+  md += `---\n\n## Conflict resolution\n\nWhen principles conflict, use the following priority order:\n\n1. **Security** — never compromise on security for speed or convenience.\n2. **Data integrity** — losing or corrupting user data is never acceptable.\n3. **Reliability** — a feature that is unreliable is worse than no feature.\n4. **Maintainability** — prefer the solution the next engineer can understand.\n5. **Performance** — optimise only when measurement shows it is necessary.\n\nDocument any deliberate trade-off in an ADR.\n\n---\n\n## Amendments\n\nThis constitution evolves with the project. To propose a change:\n\n1. Open a pull request with the amendment and your reasoning.\n2. All active contributors must acknowledge the change.\n3. Merge only after consensus.\n\nChanges are tracked in git history — the \`why\` is as important as the \`what\`.\n`;
+  return md;
+}
+
+function buildClaudeMd(context) {
+  const date = new Date().toISOString().split('T')[0];
+  const grouped = groupSelected();
+  const typeLabel = TYPE_LABELS[selectedType] || selectedType;
+  const autonomy = document.getElementById('autonomyLevel').value;
+  const teamSize = document.getElementById('teamSize').value;
+  const rawCmds = document.getElementById('cmdBuild').value.trim();
+  const rawForbidden = document.getElementById('cmdForbidden').value.trim();
+  const rawDirs = document.getElementById('cmdDirs').value.trim();
+
+  const autonomyDesc = {
+    low: 'Low — ask before every significant change or decision.',
+    medium: 'Medium — proceed on clearly scoped tasks; pause and confirm when scope is ambiguous or expanding.',
+    high: 'High — proceed autonomously on all tasks within scope; summarise what you did when complete.',
+  }[autonomy];
+
+  let md = `# CLAUDE.md\n\n`;
+  md += `> Read this file at the start of every session. It is your operating manual for this project.\n`;
+  md += `> Generated: ${date}\n\n---\n\n`;
+
+  md += `## Project overview\n\n`;
+  if (context) md += `${context}\n\n`;
+  md += `- **Project type:** ${typeLabel}\n`;
+  md += `- **Tech stack:** ${stackLine()}\n`;
+  md += `- **Team size:** ${teamSize}\n`;
+  md += `- **Autonomy level:** ${autonomyDesc}\n\n`;
+  md += `See \`constitution.md\` for the full rationale and enforcement mechanisms behind every principle below.\n\n---\n\n`;
+
+  md += `## Your role\n\nYou are a senior engineering collaborator on this project. You:\n\n- Write, review, and refactor code to a high standard.\n- Ask a single targeted clarifying question when intent is ambiguous — never assume.\n- Prefer small, reviewable changes over wholesale rewrites unless explicitly asked.\n- Operate within the autonomy level defined above.\n- Cite your reasoning when making significant decisions.\n\n---\n\n`;
+
+  if (rawCmds) {
+    md += `## Project commands\n\n\`\`\`bash\n${rawCmds}\n\`\`\`\n\n`;
+    md += `Run these commands to build, test, and lint the project. Always run the test suite after making changes.\n\n---\n\n`;
+  }
+
+  if (rawDirs) {
+    md += `## Project structure\n\n\`\`\`\n${rawDirs}\n\`\`\`\n\n---\n\n`;
+  }
+
+  md += `## Principles in practice\n\nApply the following principles by default in all code you write or review.\n\n`;
+  for (const [cat, items] of Object.entries(grouped)) {
+    md += `### ${cat}\n\n`;
+    for (const item of items) {
+      md += `**${item.label}** — ${item.what}\n\n`;
+      item.rules.slice(0, 2).forEach(r => { md += `- ${r}\n`; });
+      md += '\n';
+    }
+  }
+
+  md += `---\n\n## Autonomy boundaries\n\n`;
+  if (autonomy === 'low') {
+    md += `Your autonomy level is **Low**. Before proceeding with any of the following, pause and confirm:\n\n- Any change to more than one file\n- Any change that could affect other parts of the system\n- Any new dependency, library, or tool\n- Any architectural decision\n- Any action that cannot be trivially undone\n\n`;
+  } else if (autonomy === 'medium') {
+    md += `Your autonomy level is **Medium**. Proceed independently on clearly scoped tasks. Pause and confirm when:\n\n- The task scope is larger than initially described\n- You are about to make an architectural choice\n- You are uncertain about intent or correct behaviour\n- You are about to perform an action listed in the "Never do autonomously" section below\n\n`;
+  } else {
+    md += `Your autonomy level is **High**. Proceed independently on all tasks within scope. When complete, provide a summary of what you did and why. Still pause when hitting the "Never do autonomously" list below.\n\n`;
+  }
+
+  md += `### Never do autonomously — always confirm first\n\n`;
+  md += `- Delete files, records, or infrastructure resources\n`;
+  md += `- Deploy to production or any shared environment\n`;
+  md += `- Modify database schemas or run migrations\n`;
+  md += `- Send external communications (emails, webhooks, notifications)\n`;
+  md += `- Add or remove team members' access or permissions\n`;
+  md += `- Modify CI/CD pipelines or deployment configuration\n`;
+  md += `- Make changes outside the files/directories mentioned in the task\n`;
+
+  if (rawForbidden) {
+    md += `\n### Forbidden paths\n\nNever read or write to these paths without explicit instruction:\n\n\`\`\`\n${rawForbidden}\n\`\`\`\n\n`;
+  }
+
+  md += `\n---\n\n## Tool use guidelines\n\n- Use tools only when necessary — explain why you are using each tool before invoking it.\n- Prefer read tools before write tools — understand before changing.\n- When a tool fails, report the error with full context; do not silently retry with a different approach.\n- File search before file write — confirm the target file exists and understand its current content.\n- Batch related reads together before writing to avoid interleaved partial states.\n\n---\n\n`;
+
+  md += `## Code quality checklist\n\nBefore marking any task complete, verify:\n\n- [ ] Tests pass locally\n- [ ] New behaviour is covered by tests\n- [ ] No new lint errors introduced\n- [ ] No hardcoded secrets, magic numbers, or debug output left in\n- [ ] Relevant documentation updated\n- [ ] Changes are scoped to the task — no unrelated edits\n\n---\n\n`;
+
+  md += `## Behavioural guidelines\n\n- **Clarity over cleverness.** Write code the next engineer can understand in 30 seconds.\n- **One question at a time.** If something is unclear, ask one targeted question. Do not ask multiple questions at once.\n- **Surface trade-offs.** When two principles conflict or there are multiple valid approaches, say so explicitly and recommend one.\n- **No hallucinated APIs.** If you are unsure whether a library function exists or behaves a certain way, say so and suggest verification before using it.\n- **Scope discipline.** Do not expand scope without asking. A task to fix a bug does not authorise refactoring the surrounding code.\n- **Fail loudly.** If you are blocked, uncertain, or see something that should concern the team, say so immediately.\n\n---\n\n## When in doubt\n\n1. Re-read the relevant principle in \`constitution.md\`.\n2. Ask the user one targeted clarifying question.\n3. Default to the simpler, safer, more reversible option.\n4. Document the decision and reasoning in your response.\n`;
+  return md;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// GENERATE
+// ═══════════════════════════════════════════════════════════════════
+
+function generate() {
+  if (!selectedPrinciples.size) { showErr('Please select at least one principle before generating.'); return; }
+  clearErr();
+  saveToURL();
+  const context = document.getElementById('projectContext').value.trim();
+  const tools = selectedTools.has('both') ? ['spec-kit','claude-code'] : [...selectedTools];
+  generatedFiles = {};
+  tools.forEach(tool => {
+    const filename = tool === 'spec-kit' ? 'constitution.md' : 'CLAUDE.md';
+    const content  = tool === 'spec-kit' ? buildConstitution(context) : buildClaudeMd(context);
+    generatedFiles[tool] = { filename, content };
+  });
+  renderResult();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RENDER RESULT
+// ═══════════════════════════════════════════════════════════════════
+
+function renderResult() {
+  const sec = document.getElementById('resultSection');
+  const tabsEl = document.getElementById('tabs');
+  const panesEl = document.getElementById('panes');
+  const actEl = document.getElementById('actions');
+  tabsEl.innerHTML = panesEl.innerHTML = actEl.innerHTML = '';
+
+  const keys = Object.keys(generatedFiles);
+  activeTabKey = keys[0];
+
+  keys.forEach((key, i) => {
+    const { filename, content } = generatedFiles[key];
+    const isFirst = i === 0;
+
+    // tab
+    const tab = document.createElement('div');
+    tab.className = 'tab' + (isFirst ? ' on' : ''); tab.dataset.key = key; tab.textContent = filename;
+    tab.onclick = () => switchTab(key);
+    tabsEl.appendChild(tab);
+
+    // pane
+    const pane = document.createElement('div');
+    pane.className = 'pane' + (isFirst ? ' on' : ''); pane.id = 'pane-' + key;
+
+    const ta = document.createElement('textarea');
+    ta.className = 'editor fi'; ta.id = 'ed-' + key; ta.value = content; ta.spellcheck = false;
+    pane.appendChild(ta);
+
+    const prev = document.createElement('div');
+    prev.className = 'preview'; prev.id = 'pv-' + key;
+    prev.innerHTML = renderMarkdown(content);
+    pane.appendChild(prev);
+
+    ta.addEventListener('input', () => {
+      prev.innerHTML = renderMarkdown(ta.value);
+    });
+
+    panesEl.appendChild(pane);
+
+    // copy btn
+    const cp = document.createElement('button'); cp.className = 'btn-act';
+    cp.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="4" y="4" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M8 4V2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h2" stroke="currentColor" stroke-width="1.2"/></svg> Copy ${filename}`;
+    cp.onclick = () => {
+      navigator.clipboard.writeText(document.getElementById('ed-' + key).value).then(() => {
+        const orig = cp.innerHTML; cp.classList.add('ok'); cp.innerHTML = cp.innerHTML.replace('Copy', 'Copied ✓');
+        setTimeout(() => { cp.classList.remove('ok'); cp.innerHTML = orig; }, 2000);
+      });
+    };
+    actEl.appendChild(cp);
+
+    // download btn
+    const dl = document.createElement('button'); dl.className = 'btn-act';
+    dl.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3.5 5.5L6 8l2.5-2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M2 10h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Download ${filename}`;
+    dl.onclick = () => {
+      const blob = new Blob([document.getElementById('ed-' + key).value], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob); const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+    };
+    actEl.appendChild(dl);
+  });
+
+  // download all zip-like (multiple files as separate downloads)
+  if (keys.length > 1) {
+    const dlAll = document.createElement('button'); dlAll.className = 'btn-act';
+    dlAll.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3.5 5.5L6 8l2.5-2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M2 10h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Download all`;
+    dlAll.onclick = () => keys.forEach(k => {
+      const { filename } = generatedFiles[k];
+      const blob = new Blob([document.getElementById('ed-' + k).value], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob); const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+    });
+    actEl.appendChild(dlAll);
+  }
+
+  setView(currentView);
+  sec.classList.add('on');
+  sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function switchTab(key) {
+  activeTabKey = key;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.key === key));
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === 'pane-' + key));
+}
+
+function setView(view) {
+  currentView = view;
+  document.getElementById('vt-raw').classList.toggle('on', view === 'raw');
+  document.getElementById('vt-preview').classList.toggle('on', view === 'preview');
+  document.querySelectorAll('.editor').forEach(e => e.style.display = view === 'raw' ? 'block' : 'none');
+  document.querySelectorAll('.preview').forEach(p => p.classList.toggle('on', view === 'preview'));
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MINIMAL MARKDOWN RENDERER
+// ═══════════════════════════════════════════════════════════════════
+
+function renderMarkdown(md) {
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let html = '';
+  const lines = md.split('\n');
+  let inList = false, inBlockquote = false;
+
+  const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
+  const closeBlockquote = () => { if (inBlockquote) { html += '</blockquote>'; inBlockquote = false; } };
+
+  const inline = s => s
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^#{1} /.test(line)) { closeList(); closeBlockquote(); html += `<h1>${inline(esc(line.replace(/^# /,'')))}</h1>`; }
+    else if (/^#{2} /.test(line)) { closeList(); closeBlockquote(); html += `<h2>${inline(esc(line.replace(/^## /,'')))}</h2>`; }
+    else if (/^#{3} /.test(line)) { closeList(); closeBlockquote(); html += `<h3>${inline(esc(line.replace(/^### /,'')))}</h3>`; }
+    else if (/^[-*] /.test(line)) { closeBlockquote(); if (!inList) { html += '<ul>'; inList = true; } html += `<li>${inline(esc(line.replace(/^[-*] /,'')))}</li>`; }
+    else if (/^\d+\. /.test(line)) { closeBlockquote(); if (!inList) { html += '<ol>'; inList = true; } html += `<li>${inline(esc(line.replace(/^\d+\. /,'')))}</li>`; }
+    else if (/^> /.test(line)) { closeList(); if (!inBlockquote) { html += '<blockquote>'; inBlockquote = true; } html += `<p>${inline(esc(line.replace(/^> /,'')))}</p>`; }
+    else if (/^---/.test(line)) { closeList(); closeBlockquote(); html += '<hr>'; }
+    else if (line.trim() === '') { closeList(); closeBlockquote(); }
+    else { closeList(); closeBlockquote(); html += `<p>${inline(esc(line))}</p>`; }
+  }
+  closeList(); closeBlockquote();
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════════
+
+function showErr(msg) { const e = document.getElementById('errMsg'); e.textContent = '⚠ ' + msg; e.classList.add('on'); }
+function clearErr() { document.getElementById('errMsg').classList.remove('on'); }
+
+init();
+</script>
+</body>
+</html>
