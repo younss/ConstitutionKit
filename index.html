@@ -432,6 +432,39 @@ footer p{font-size:11px;color:var(--dim);line-height:1.7}
         <option value="large">Large (30+)</option>
       </select>
     </div>
+    <div class="field">
+      <div class="field-label">Branch strategy</div>
+      <div class="field-hint">How your team manages branches and merges</div>
+      <select class="f-input" id="branchStrategy" style="cursor:pointer">
+        <option value="feature-branches" selected>Feature branches → main</option>
+        <option value="gitflow">GitFlow — main/develop/feature/release</option>
+        <option value="trunk">Trunk-based development</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="field-label">PR merge strategy</div>
+      <div class="field-hint">How PRs are merged into the target branch</div>
+      <select class="f-input" id="mergeStrategy" style="cursor:pointer">
+        <option value="squash" selected>Squash and merge</option>
+        <option value="merge">Merge commit</option>
+        <option value="rebase">Rebase and merge</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="field-label">Test framework &amp; coverage threshold</div>
+      <div class="field-hint">e.g. Jest + RTL, 80% coverage / pytest, no threshold</div>
+      <input class="f-input" id="testFramework" placeholder="e.g. Jest + React Testing Library, 80% line coverage">
+    </div>
+    <div class="field f-wide">
+      <div class="field-label">Environment topology</div>
+      <div class="field-hint">List your environments and what the agent is allowed to do in each</div>
+      <textarea class="f-area" id="envTopology" placeholder="dev:     full agent access — create branches, run tests, deploy&#10;staging: agent can read and run tests, no deployments&#10;prod:    agent forbidden — human deploy only"></textarea>
+    </div>
+    <div class="field f-wide">
+      <div class="field-label">Unusual constraints or non-standard decisions</div>
+      <div class="field-hint">What would surprise a new engineer or AI agent? Legacy modules, non-standard patterns, historical context.</div>
+      <textarea class="f-area" id="unusualConstraints" placeholder="e.g. We use a custom ORM wrapper because the standard one doesn't support our multi-tenant schema.&#10;The /legacy directory is frozen — do not refactor without explicit approval.&#10;Authentication uses a non-standard token format for compliance reasons."></textarea>
+    </div>
   </div>
 </div>
 
@@ -469,7 +502,7 @@ footer p{font-size:11px;color:var(--dim);line-height:1.7}
     <a href="https://code.claude.com/docs/en/memory" class="fl">CLAUDE.md docs</a> &nbsp;·&nbsp;
     <a href="https://github.com/github/spec-kit" class="fl">spec-kit</a>
   </p>
-  <p>ConstitutionKit v2.3.0</p>
+  <p>ConstitutionKit v2.4.0</p>
 </footer>
 
 </div><!-- /wrap -->
@@ -999,12 +1032,17 @@ function loadFromURL() {
         if (el) el.classList.add('selected');
       });
     }
-    if (params.get('ctx'))      document.getElementById('projectContext').value = params.get('ctx');
-    if (params.get('build'))    document.getElementById('cmdBuild').value       = params.get('build');
-    if (params.get('forbidden'))document.getElementById('cmdForbidden').value   = params.get('forbidden');
-    if (params.get('dirs'))     document.getElementById('cmdDirs').value        = params.get('dirs');
-    if (params.get('autonomy')) document.getElementById('autonomyLevel').value  = params.get('autonomy');
-    if (params.get('team'))     document.getElementById('teamSize').value       = params.get('team');
+    if (params.get('ctx'))      document.getElementById('projectContext').value  = params.get('ctx');
+    if (params.get('build'))    document.getElementById('cmdBuild').value        = params.get('build');
+    if (params.get('forbidden'))document.getElementById('cmdForbidden').value    = params.get('forbidden');
+    if (params.get('dirs'))     document.getElementById('cmdDirs').value         = params.get('dirs');
+    if (params.get('autonomy')) document.getElementById('autonomyLevel').value   = params.get('autonomy');
+    if (params.get('team'))     document.getElementById('teamSize').value        = params.get('team');
+    if (params.get('branch'))   document.getElementById('branchStrategy').value  = params.get('branch');
+    if (params.get('envtopo'))  document.getElementById('envTopology').value     = params.get('envtopo');
+    if (params.get('testfw'))   document.getElementById('testFramework').value   = params.get('testfw');
+    if (params.get('merge'))    document.getElementById('mergeStrategy').value   = params.get('merge');
+    if (params.get('unusual'))  document.getElementById('unusualConstraints').value = params.get('unusual');
     updateCount();
     updateGenLabel();
   } catch(e) {}
@@ -1023,12 +1061,22 @@ function saveToURL() {
   const dirs      = document.getElementById('cmdDirs').value;
   const autonomy  = document.getElementById('autonomyLevel').value;
   const team      = document.getElementById('teamSize').value;
-  if (ctx)                params.set('ctx',      ctx);
-  if (build)              params.set('build',    build);
-  if (forbidden)          params.set('forbidden',forbidden);
-  if (dirs)               params.set('dirs',     dirs);
+  const branch    = document.getElementById('branchStrategy').value;
+  const envTopo   = document.getElementById('envTopology').value;
+  const testFw    = document.getElementById('testFramework').value;
+  const merge     = document.getElementById('mergeStrategy').value;
+  const unusual   = document.getElementById('unusualConstraints').value;
+  if (ctx)                   params.set('ctx',      ctx);
+  if (build)                 params.set('build',    build);
+  if (forbidden)             params.set('forbidden',forbidden);
+  if (dirs)                  params.set('dirs',     dirs);
   if (autonomy !== 'medium') params.set('autonomy', autonomy);
   if (team !== 'small')      params.set('team',     team);
+  if (branch !== 'feature-branches') params.set('branch', branch);
+  if (envTopo)  params.set('envtopo', envTopo);
+  if (testFw)   params.set('testfw',  testFw);
+  if (merge !== 'squash') params.set('merge', merge);
+  if (unusual)  params.set('unusual', unusual);
   history.replaceState(null, '', '#' + params.toString());
 }
 
@@ -1196,10 +1244,13 @@ function buildConstitution(context) {
   const typeLabel = TYPE_LABELS[selectedType] || selectedType;
 
   let md = `# constitution.md\n\n`;
-  if (context) md += `> **Project:** ${context}\n>\n`;
+  const projectDesc = context && context.projectDesc ? context.projectDesc : null;
+  if (projectDesc) md += `> **Project:** ${projectDesc}\n>\n`;
   md += `> **Project type:** ${typeLabel}  \n`;
   md += `> **Tech stack:** ${stackLine()}  \n`;
-  md += `> **Generated:** ${date}\n\n`;
+  md += `> **Version:** v1.0.0  \n`;
+  md += `> **Generated:** ${date}  \n`;
+  md += `> **Last amended:** ${date}\n\n`;
   md += `> This document defines the non-negotiable principles, architectural decisions, and behavioral contracts that guide this project. It is the authoritative reference for all contributors — human and AI alike.\n\n---\n\n`;
   md += `## Guiding philosophy\n\nGood software is not an accident. It emerges from deliberate, shared decisions about how we work, what we value, and what we refuse to compromise on. This constitution captures those decisions.\n\nWhen a situation is ambiguous, return to these principles. When two principles conflict, use judgment and document the trade-off as an Architecture Decision Record.\n\n`;
   md += `> **Operating model:** This project uses agentic AI tooling (Claude Code / spec-kit). Every AI agent working on this codebase is expected to read, understand, and apply this constitution. Principles are not suggestions — they are constraints.\n\n---\n\n`;
@@ -1220,7 +1271,117 @@ function buildConstitution(context) {
     }
   }
 
+  // ── CI / Quality Gates (P3-A) ────────────────────────────────────────────
+  const buildCmd = context && context.buildCmd ? context.buildCmd : null;
+  md += `---\n\n## CI / Quality Gates\n\n`;
+  md += `Every pull request must pass the following gates before merge. Gates marked **[BLOCKING]** prevent merge on failure. Gates marked **[ADVISORY]** produce a warning and require explicit sign-off.\n\n`;
+  md += `### Pipeline steps (in order)\n\n`;
+  if (buildCmd) {
+    if (context.testFramework) {
+      md += `**Test framework:** ${context.testFramework} — all tests must pass; coverage must meet the stated threshold.\n\n`;
+    }
+    md += `\`\`\`\n${buildCmd}\n\`\`\`\n\n`;
+  } else {
+    if (context && context.testFramework) {
+      md += `**Test framework:** ${context.testFramework} — all tests must pass; coverage must meet the stated threshold.\n\n`;
+    }
+    md += `> ⚠️ No build commands were provided. Fill in the pipeline steps above with your actual build, test, and lint commands.\n\n`;
+    md += `\`\`\`\n# build command\n# test command\n# lint command\n\`\`\`\n\n`;
+  }
+  md += `### Gate classification\n\n`;
+  md += `| Gate | Type | Failure action |\n`;
+  md += `|------|------|---------------|\n`;
+  md += `| Build | **BLOCKING** | Fix before merge |\n`;
+  md += `| Tests | **BLOCKING** | Fix before merge |\n`;
+  md += `| Linting | **BLOCKING** | Fix before merge |\n`;
+  md += `| Coverage threshold | **BLOCKING** | Fix or get explicit waiver |\n`;
+  md += `| Security scan | **BLOCKING** | Fix CVE or document accepted risk |\n`;
+  md += `| Performance regression | ADVISORY | Review and sign off |\n\n`;
+  md += `### Definition of done (per PR)\n\n`;
+  md += `A PR is ready to merge when:\n\n`;
+  md += `- [ ] All blocking CI gates are green\n`;
+  md += `- [ ] At least one reviewer has approved\n`;
+  md += `- [ ] The PR review checklist (see below) is complete\n`;
+  md += `- [ ] No unresolved review comments remain\n`;
+  md += `- [ ] CHANGELOG or ADR updated if required\n\n`;
+
+  // ── PR Review Checklist (P3-B) ──────────────────────────────────────────
+  const principleChecklist = {
+    'solid':            '- [ ] No class or module has more than one reason to change (SRP verified)',
+    'dry':              '- [ ] No logic is duplicated — shared behaviour is extracted to a utility or hook',
+    'tdd':              '- [ ] Tests were written before or alongside implementation (not as an afterthought)',
+    'clean-code':       '- [ ] All names reveal intent — no abbreviations, no single-letter variables outside loops',
+    'api-conventions':  '- [ ] API responses use correct HTTP verbs and status codes',
+    'api-versioning':   '- [ ] Breaking API changes increment the version — no silent contract breaks',
+    'circuit-breaker':  '- [ ] Every external call has a circuit breaker or timeout',
+    'fail-fast':        '- [ ] No empty catch blocks — every exception is handled with context',
+    'observability':    '- [ ] New behaviour emits structured logs and/or metrics',
+    'zero-trust':       '- [ ] All inputs are validated at the boundary — nothing from outside is trusted',
+    'owasp':            '- [ ] OWASP Top 10 checklist reviewed for any auth, input, or data-handling changes',
+    'webhook-security': '- [ ] Webhook signature verified before any payload processing',
+    'idempotent-msg':   '- [ ] Message handler is idempotent — duplicate delivery produces no side effects',
+  };
+  md += `---\n\n## Pull Request Review Checklist\n\n`;
+  md += `Use this checklist on every PR review. Every unchecked item is a reason to request changes.\n\n`;
+  md += `### Universal (every PR)\n\n`;
+  md += `- [ ] The code does what the PR description says it does\n`;
+  md += `- [ ] No secrets, tokens, or credentials appear anywhere in the diff\n`;
+  md += `- [ ] New behaviour has test coverage\n`;
+  md += `- [ ] The PR description includes a test plan\n`;
+  md += `- [ ] No unintended files are included in the diff\n\n`;
+  const projectSpecificItems = Object.entries(principleChecklist)
+    .filter(([id]) => selectedPrinciples.has(id))
+    .map(([, item]) => item);
+  if (projectSpecificItems.length) {
+    md += `### Project-specific (based on your selected principles)\n\n`;
+    projectSpecificItems.forEach(item => { md += `${item}\n`; });
+    md += '\n';
+  }
+
+  // ── Security Baseline (P1-B) ─────────────────────────────────────────────
+  md += `---\n\n## Security Baseline\n\n`;
+  md += `The following requirements apply to every component of this project, regardless of feature scope or delivery pressure. They are non-negotiable and cannot be waived by individual contributors.\n\n`;
+  md += `- **No secrets in source code.** API keys, tokens, passwords, and credentials are stored exclusively in environment variables or a secrets manager. They are never committed to the repository, even in commented-out code.\n`;
+  md += `- **Dependency CVE scanning.** All third-party dependencies are scanned for known vulnerabilities before merge. A CVE at critical or high severity is a blocking issue.\n`;
+  md += `- **Input validation at every external boundary.** All data entering the system from outside (HTTP requests, file uploads, queue messages, webhooks) is validated and sanitised before use. Trust nothing from outside the process boundary.\n`;
+  md += `- **Least-privilege access.** No service, user, or agent has more permissions than required for its stated function. Elevated permissions require explicit justification and are reviewed quarterly.\n`;
+  md += `- **Logging hygiene.** Logs must never contain secrets, tokens, raw passwords, full credit card numbers, or other sensitive PII. Structured logging is required; free-text concatenation with sensitive fields is forbidden.\n\n`;
+
+  // ── Architecture Decision Records (P1-C) ─────────────────────────────────
+  md += `---\n\n## Architecture Decision Records\n\n`;
+  md += `All significant architectural decisions are recorded as ADRs. An ADR is required whenever a decision:\n\n`;
+  md += `- Introduces a new dependency or technology\n`;
+  md += `- Changes a structural pattern across the codebase\n`;
+  md += `- Deviates from a principle in this constitution (a waiver ADR)\n`;
+  md += `- Affects how the system is deployed or operated\n\n`;
+  md += `**ADR storage:** \`docs/adr/ADR-NNN-short-title.md\`\n\n`;
+  md += `**ADR template:**\n\n`;
+  md += `\`\`\`markdown\n`;
+  md += `# ADR-NNN: [Title]\n\n`;
+  md += `**Date:** YYYY-MM-DD\n`;
+  md += `**Status:** Proposed | Accepted | Deprecated | Superseded by ADR-NNN\n\n`;
+  md += `## Context\n`;
+  md += `[What is the situation that requires a decision?]\n\n`;
+  md += `## Decision\n`;
+  md += `[What was decided?]\n\n`;
+  md += `## Rationale\n`;
+  md += `[Why was this the right choice? What alternatives were considered?]\n\n`;
+  md += `## Consequences\n`;
+  md += `[What are the trade-offs? What becomes easier or harder?]\n`;
+  md += `\`\`\`\n\n`;
+  md += `**ADR Register**\n\n`;
+  md += `| ID | Title | Status | Date |\n`;
+  md += `|----|-------|--------|------|\n`;
+  md += `| — | *(No ADRs yet — add your first when you make a significant architectural decision)* | — | — |\n\n`;
+
+  // ── Conflict Resolution (existing) ────────────────────────────────────────
   md += `---\n\n## Conflict resolution\n\nWhen principles conflict, use the following priority order:\n\n1. **Security** — never compromise on security for speed or convenience.\n2. **Data integrity** — losing or corrupting user data is never acceptable.\n3. **Reliability** — a feature that is unreliable is worse than no feature.\n4. **Maintainability** — prefer the solution the next engineer can understand.\n5. **Performance** — optimise only when measurement shows it is necessary.\n\nDocument any deliberate trade-off in an ADR.\n\n---\n\n## Amendments\n\nThis constitution evolves with the project. To propose a change:\n\n1. Open a pull request with the amendment and your reasoning.\n2. All active contributors must acknowledge the change.\n3. Merge only after consensus.\n\nChanges are tracked in git history — the \`why\` is as important as the \`what\`.\n`;
+
+  // ── Changelog (P4-F) ─────────────────────────────────────────────────────
+  md += `\n---\n\n## Changelog\n\n`;
+  md += `| Version | Date | Author | Summary |\n`;
+  md += `|---------|------|--------|---------|\n`;
+  md += `| v1.0.0 | ${date} | ConstitutionKit | Initial constitution |\n`;
 
   // Flutter addendum: appended when the Flutter project type is selected
   // or when Flutter is included in the selected stack. This is a pure extension
@@ -1347,11 +1508,11 @@ function buildClaudeMd(context) {
   const date = new Date().toISOString().split('T')[0];
   const grouped = groupSelected();
   const typeLabel = TYPE_LABELS[selectedType] || selectedType;
-  const autonomy = document.getElementById('autonomyLevel').value;
-  const teamSize = document.getElementById('teamSize').value;
-  const rawCmds = document.getElementById('cmdBuild').value.trim();
-  const rawForbidden = document.getElementById('cmdForbidden').value.trim();
-  const rawDirs = document.getElementById('cmdDirs').value.trim();
+  const autonomy    = context.autonomyLevel;
+  const teamSize    = context.teamSize;
+  const rawCmds     = context.buildCmd;
+  const rawForbidden= context.forbidden;
+  const rawDirs     = context.dirs;
 
   const autonomyDesc = {
     low: 'Low — ask before every significant change or decision.',
@@ -1364,12 +1525,29 @@ function buildClaudeMd(context) {
   md += `> Generated: ${date}\n\n---\n\n`;
 
   md += `## Project overview\n\n`;
-  if (context) md += `${context}\n\n`;
+  if (context.projectDesc) md += `${context.projectDesc}\n\n`;
   md += `- **Project type:** ${typeLabel}\n`;
   md += `- **Tech stack:** ${stackLine()}\n`;
   md += `- **Team size:** ${teamSize}\n`;
   md += `- **Autonomy level:** ${autonomyDesc}\n\n`;
   md += `See \`constitution.md\` for the full rationale and enforcement mechanisms behind every principle below.\n\n---\n\n`;
+
+  // ── P2-A: Session Startup Protocol ───────────────────────────────────────
+  const testCmd = rawCmds || 'the project test command';
+  md += `## Session startup protocol\n\n`;
+  md += `Execute these steps at the beginning of every session, in order:\n\n`;
+  md += `1. **Verify your branch.** Run \`git status\`. Confirm you are on a feature branch, not \`main\` or any protected branch. If you are on \`main\`, stop and ask the user to create or name a feature branch before proceeding.\n`;
+  md += `2. **Establish a green baseline.** Run \`${testCmd}\`. If tests are failing before you touch anything, report this immediately — do not proceed and do not assume the failures are acceptable.\n`;
+  md += `3. **Review forbidden paths.** Re-read the forbidden paths listed in this file. Confirm none of them are relevant to the current task before writing any code.\n`;
+  md += `4. **State your plan.** Before writing any code, state in one or two sentences what you intend to do and why. If the task is ambiguous, ask one clarifying question rather than making an assumption.\n`;
+  md += `5. **Scope check.** Confirm the task is within your autonomy level for this project. If it is not, surface this before proceeding.\n\n---\n\n`;
+
+  // ── P4-D: Unusual Constraints ─────────────────────────────────────────────
+  if (context.unusualConstraints) {
+    md += `## Non-standard decisions and known constraints\n\n`;
+    md += `The following decisions in this project may surprise an engineer or AI agent encountering the code for the first time. Read these before forming assumptions about the codebase.\n\n`;
+    md += `${context.unusualConstraints}\n\n---\n\n`;
+  }
 
   md += `## Your role\n\nYou are a senior engineering collaborator on this project. You:\n\n- Write, review, and refactor code to a high standard.\n- Ask a single targeted clarifying question when intent is ambiguous — never assume.\n- Prefer small, reviewable changes over wholesale rewrites unless explicitly asked.\n- Operate within the autonomy level defined above.\n- Cite your reasoning when making significant decisions.\n\n---\n\n`;
 
@@ -1387,12 +1565,18 @@ function buildClaudeMd(context) {
     md += `### ${cat}\n\n`;
     for (const item of items) {
       md += `**${item.label}** — ${item.what}\n\n`;
-      item.rules.slice(0, 2).forEach(r => { md += `- ${r}\n`; });
+      item.rules.forEach(r => { md += `- ${r}\n`; });
       md += '\n';
     }
   }
 
   md += `---\n\n## Autonomy boundaries\n\n`;
+  // ── P4-E: Branch strategy awareness ──────────────────────────────────────
+  if (context.branchStrategy === 'trunk') {
+    md += `This project uses trunk-based development. All work happens on short-lived feature branches off \`main\`. Branches must be merged within 1–2 days.\n\n`;
+  } else if (context.branchStrategy === 'gitflow') {
+    md += `This project uses GitFlow. Feature branches cut from \`develop\`. Release branches cut from \`develop\`. Hotfixes cut from \`main\`. Never push directly to \`main\` or \`develop\`.\n\n`;
+  }
   if (autonomy === 'low') {
     md += `Your autonomy level is **Low**. Before proceeding with any of the following, pause and confirm:\n\n- Any change to more than one file\n- Any change that could affect other parts of the system\n- Any new dependency, library, or tool\n- Any architectural decision\n- Any action that cannot be trivially undone\n\n`;
   } else if (autonomy === 'medium') {
@@ -1414,7 +1598,47 @@ function buildClaudeMd(context) {
     md += `\n### Forbidden paths\n\nNever read or write to these paths without explicit instruction:\n\n\`\`\`\n${rawForbidden}\n\`\`\`\n\n`;
   }
 
-  md += `\n---\n\n## Tool use guidelines\n\n- Use tools only when necessary — explain why you are using each tool before invoking it.\n- Prefer read tools before write tools — understand before changing.\n- When a tool fails, report the error with full context; do not silently retry with a different approach.\n- File search before file write — confirm the target file exists and understand its current content.\n- Batch related reads together before writing to avoid interleaved partial states.\n\n---\n\n`;
+  // ── P4-H: Environment access policy ──────────────────────────────────────
+  if (context.envTopology) {
+    md += `\n## Environment access policy\n\n${context.envTopology}\n\n`;
+  }
+
+  // ── P2-B: Output Format Contract ─────────────────────────────────────────
+  md += `\n---\n\n## Output format contract\n\n`;
+  md += `### Commit messages\n`;
+  md += `Follow the Conventional Commits format:\n`;
+  md += `\`\`\`\n`;
+  md += `<type>(<scope>): <short summary>\n\n`;
+  md += `[optional body — explain why, not what]\n\n`;
+  md += `[optional footer — breaking changes, issue references]\n`;
+  md += `\`\`\`\n`;
+  md += `Types: \`feat\`, \`fix\`, \`refactor\`, \`test\`, \`docs\`, \`chore\`, \`perf\`\n`;
+  md += `- Summary is imperative, lowercase, no trailing period, max 72 characters\n`;
+  md += `- Body explains the motivation, not the mechanics\n\n`;
+  md += `### Pull request descriptions\n`;
+  md += `Structure every PR description as:\n`;
+  md += `\`\`\`\n`;
+  md += `## Summary\n`;
+  md += `[1–3 bullet points: what changed and why]\n\n`;
+  md += `## Test plan\n`;
+  md += `[Bulleted checklist of how to verify the change works]\n\n`;
+  md += `## Constitutional compliance\n`;
+  md += `[Confirm which principles from the constitution this change adheres to, or note any intentional deviations with justification]\n`;
+  md += `\`\`\`\n\n`;
+  md += `### Reporting completed work\n`;
+  md += `After completing a task, provide:\n`;
+  md += `1. A one-sentence summary of what was done\n`;
+  md += `2. Any files created or modified (paths only)\n`;
+  md += `3. Any deviations from the original plan and why\n\n`;
+  md += `### Expressing uncertainty\n`;
+  md += `If you are not confident about a decision: state "I am uncertain about [X] because [Y]. My best approach is [Z], but you should verify [W]." Do not proceed silently on uncertain decisions.\n\n`;
+  md += `### Reporting constitutional violations\n`;
+  md += `If you detect existing code that violates this constitution:\n`;
+  md += `1. Flag it explicitly: "Constitutional violation detected: [principle] — [location] — [description]"\n`;
+  md += `2. Do not fix it without being asked, unless it is directly in scope of the current task\n`;
+  md += `3. Do not let it block the current task unless it creates a safety or security risk\n\n---\n\n`;
+
+  md += `## Tool use guidelines\n\n- Use tools only when necessary — explain why you are using each tool before invoking it.\n- Prefer read tools before write tools — understand before changing.\n- When a tool fails, report the error with full context; do not silently retry with a different approach.\n- File search before file write — confirm the target file exists and understand its current content.\n- Batch related reads together before writing to avoid interleaved partial states.\n\n---\n\n`;
 
   md += `## Code quality checklist\n\nBefore marking any task complete, verify:\n\n- [ ] Tests pass locally\n- [ ] New behaviour is covered by tests\n- [ ] No new lint errors introduced\n- [ ] No hardcoded secrets, magic numbers, or debug output left in\n- [ ] Relevant documentation updated\n- [ ] Changes are scoped to the task — no unrelated edits\n\n---\n\n`;
 
@@ -1919,7 +2143,19 @@ function generate() {
   if (!selectedPrinciples.size) { showErr('Please select at least one principle before generating.'); return; }
   clearErr();
   saveToURL();
-  const context = document.getElementById('projectContext').value.trim();
+  const context = {
+    projectDesc:       document.getElementById('projectContext').value.trim(),
+    buildCmd:          document.getElementById('cmdBuild').value.trim(),
+    forbidden:         document.getElementById('cmdForbidden').value.trim(),
+    dirs:              document.getElementById('cmdDirs').value.trim(),
+    autonomyLevel:     document.getElementById('autonomyLevel').value,
+    teamSize:          document.getElementById('teamSize').value,
+    branchStrategy:    document.getElementById('branchStrategy').value,
+    envTopology:       document.getElementById('envTopology').value.trim(),
+    testFramework:     document.getElementById('testFramework').value.trim(),
+    mergeStrategy:     document.getElementById('mergeStrategy').value,
+    unusualConstraints:document.getElementById('unusualConstraints').value.trim(),
+  };
   const tools = selectedTools.has('both') ? ['spec-kit','claude-code'] : [...selectedTools];
   generatedFiles = {};
   tools.forEach(tool => {

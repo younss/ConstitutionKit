@@ -2,6 +2,33 @@
 
 All notable changes to ConstitutionKit are documented here.
 
+## [2.4.0] — 2026-03-14
+
+### Fixed
+- **P1-A** — `buildClaudeMd()` emitted only 2 of 4 rules per principle due to `item.rules.slice(0, 2)`. All rules are now emitted.
+
+### Added
+- **P1-B** — `constitution.md` always includes a `## Security Baseline` section (no secrets, CVE scanning, input validation, least-privilege, logging hygiene) regardless of which principles are selected.
+- **P1-C** — `constitution.md` always includes an `## Architecture Decision Records` section with ADR template and ADR register table.
+- **P2-A** — `CLAUDE.md` now includes a `## Session startup protocol` section (git branch check, green baseline, forbidden paths review, plan declaration, scope check). The test step uses `context.buildCmd` when available.
+- **P2-B** — `CLAUDE.md` now includes an `## Output format contract` section covering commit message format (Conventional Commits), PR description structure, reporting completed work, expressing uncertainty, and reporting constitutional violations.
+- **P3-A** — `constitution.md` now includes a `## CI / Quality Gates` section with pipeline steps (from `context.buildCmd`), gate classification table (BLOCKING vs ADVISORY), and definition of done checklist. A warning is shown when no build commands were provided.
+- **P3-B** — `constitution.md` now includes a `## Pull Request Review Checklist` section. Universal items are always present; principle-specific items (solid, dry, tdd, clean-code, api-conventions, api-versioning, circuit-breaker, fail-fast, observability, zero-trust, owasp, webhook-security, idempotent-msg) are appended when the corresponding principle is selected.
+- **P4-A** — Step 4 has 5 new input fields: branch strategy (select), environment topology (textarea), test framework & coverage threshold (input), PR merge strategy (select), unusual constraints (textarea).
+- **P4-B** — `saveToURL()` and `loadFromURL()` serialise/restore all 5 new fields via URL hash params: `branch`, `envtopo`, `testfw`, `merge`, `unusual`.
+- **P4-C** — `generate()` now builds a structured `context` object containing all Step 4 fields and passes it to both generators. Neither generator reads the DOM directly (SRP fix; DOM reads are consolidated in `generate()`).
+- **P4-D** — `CLAUDE.md` includes a `## Non-standard decisions and known constraints` section when `context.unusualConstraints` is set.
+- **P4-E** — The autonomy boundaries section in `CLAUDE.md` is now branch-strategy-aware: trunk-based and GitFlow strategies produce explicit branch model statements.
+- **P4-F** — `constitution.md` header now includes `Version: v1.0.0`, `Generated:`, and `Last amended:` fields. A `## Changelog` table is appended at the end of the constitution.
+- **P4-G** — The CI/Quality Gates section includes a test framework line when `context.testFramework` is set.
+- **P4-H** — `CLAUDE.md` includes a `## Environment access policy` section when `context.envTopology` is set.
+- **ADR-004** — Architecture Decision Record for production-ready output improvements at `.specify/adr/ADR-004-production-ready-output.md`.
+
+### Changed
+- Footer version bumped to `v2.4.0`.
+
+---
+
 ## [2.3.0] — 2026-03-14
 
 ### Added
