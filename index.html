@@ -1,14 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-L9KWDSDGSS"></script>
+<!-- Google Analytics — loaded only after user consent -->
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-L9KWDSDGSS');
+  function loadGA() {
+    if (window._gaLoaded) return;
+    window._gaLoaded = true;
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-L9KWDSDGSS';
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){dataLayer.push(arguments);};
+    gtag('js', new Date());
+    gtag('config', 'G-L9KWDSDGSS');
+  }
+  function acceptAnalytics() {
+    localStorage.setItem('ck_consent', 'yes');
+    document.getElementById('consent-bar').style.display = 'none';
+    loadGA();
+  }
+  function declineAnalytics() {
+    localStorage.setItem('ck_consent', 'no');
+    document.getElementById('consent-bar').style.display = 'none';
+  }
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -172,6 +187,23 @@ footer p{font-size:11px;color:var(--dim);line-height:1.7}
 
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .fi{animation:fadeIn .3s ease both}
+
+/* ── PREVIEW EXTENSIONS ── */
+.preview pre{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin:12px 0;overflow-x:auto}
+.preview pre code{background:none;border:none;padding:0;font-size:11px;color:var(--text);line-height:1.7;white-space:pre;display:block}
+.preview table{border-collapse:collapse;width:100%;margin:12px 0;font-size:12px}
+.preview table td{border:1px solid var(--border);padding:6px 10px;color:var(--muted);text-align:left;line-height:1.6}
+.preview table tr:first-child td{color:var(--text);font-weight:600;background:var(--s2)}
+
+/* ── CONSENT BANNER ── */
+#consent-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:#141414;border-top:1px solid var(--border);padding:12px 24px;z-index:100;align-items:center;gap:12px;flex-wrap:wrap}
+#consent-bar p{font-size:11px;color:var(--muted);flex:1;min-width:200px;line-height:1.6}
+#consent-bar p a{color:var(--accent);text-decoration:none}
+.consent-btn{padding:5px 14px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px;cursor:pointer;border:1px solid var(--border);transition:all .15s}
+.consent-btn.accept{background:var(--accent);color:#0c0c0c;border-color:var(--accent);font-weight:600}
+.consent-btn.accept:hover{opacity:.85}
+.consent-btn.decline{background:transparent;color:var(--muted)}
+.consent-btn.decline:hover{border-color:#555;color:var(--text)}
 </style>
 </head>
 <body>
@@ -398,10 +430,18 @@ footer p{font-size:11px;color:var(--dim);line-height:1.7}
     <a href="https://code.claude.com/docs/en/memory" class="fl">CLAUDE.md docs</a> &nbsp;·&nbsp;
     <a href="https://github.com/github/spec-kit" class="fl">spec-kit</a>
   </p>
-  <p>ConstitutionKit v2.0</p>
+  <p>ConstitutionKit v2.1.0</p>
 </footer>
 
 </div><!-- /wrap -->
+
+<!-- GDPR Consent Banner -->
+<div id="consent-bar">
+  <p>We use Google Analytics to understand usage patterns. No personal data is collected. Your browser only — no account, no server. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy policy</a></p>
+  <button class="consent-btn decline" onclick="declineAnalytics()">Decline</button>
+  <button class="consent-btn accept" onclick="acceptAnalytics()">Accept analytics</button>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════════════════
 // DATA
@@ -804,6 +844,10 @@ function init() {
   renderPrinciples();
   loadFromURL();
   updateCount();
+  // Analytics consent
+  const consent = localStorage.getItem('ck_consent');
+  if (consent === 'yes') { loadGA(); }
+  else if (!consent) { document.getElementById('consent-bar').style.display = 'flex'; }
 }
 
 function loadFromURL() {
@@ -836,6 +880,12 @@ function loadFromURL() {
         if (el) el.classList.add('selected');
       });
     }
+    if (params.get('ctx'))      document.getElementById('projectContext').value = params.get('ctx');
+    if (params.get('build'))    document.getElementById('cmdBuild').value       = params.get('build');
+    if (params.get('forbidden'))document.getElementById('cmdForbidden').value   = params.get('forbidden');
+    if (params.get('dirs'))     document.getElementById('cmdDirs').value        = params.get('dirs');
+    if (params.get('autonomy')) document.getElementById('autonomyLevel').value  = params.get('autonomy');
+    if (params.get('team'))     document.getElementById('teamSize').value       = params.get('team');
     updateCount();
     updateGenLabel();
   } catch(e) {}
@@ -847,6 +897,18 @@ function saveToURL() {
   params.set('type', selectedType);
   if (selectedStack.size) params.set('stack', [...selectedStack].join(','));
   if (selectedPrinciples.size) params.set('p', [...selectedPrinciples].join(','));
+  const ctx       = document.getElementById('projectContext').value;
+  const build     = document.getElementById('cmdBuild').value;
+  const forbidden = document.getElementById('cmdForbidden').value;
+  const dirs      = document.getElementById('cmdDirs').value;
+  const autonomy  = document.getElementById('autonomyLevel').value;
+  const team      = document.getElementById('teamSize').value;
+  if (ctx)                params.set('ctx',      ctx);
+  if (build)              params.set('build',    build);
+  if (forbidden)          params.set('forbidden',forbidden);
+  if (dirs)               params.set('dirs',     dirs);
+  if (autonomy !== 'medium') params.set('autonomy', autonomy);
+  if (team !== 'small')      params.set('team',     team);
   history.replaceState(null, '', '#' + params.toString());
 }
 
@@ -1387,31 +1449,60 @@ function setView(view) {
 
 function renderMarkdown(md) {
   const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const inline = s => s
+    .replace(/`([^`]+)`/g,        (_,c) => `<code>${c}</code>`)
+    .replace(/\*\*([^*]+)\*\*/g,  (_,c) => `<strong>${c}</strong>`)
+    .replace(/\*([^*]+)\*/g,      (_,c) => `<em>${c}</em>`);
+
   let html = '';
   const lines = md.split('\n');
-  let inList = false, inBlockquote = false;
+  let inList = false, inOList = false, inBlockquote = false, inFence = false, inTable = false;
 
-  const closeList = () => { if (inList) { html += '</ul>'; inList = false; } };
+  const closeList       = () => { if (inList)  { html += '</ul>';  inList  = false; }
+                                   if (inOList) { html += '</ol>'; inOList = false; } };
   const closeBlockquote = () => { if (inBlockquote) { html += '</blockquote>'; inBlockquote = false; } };
-
-  const inline = s => s
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  const closeTable      = () => { if (inTable) { html += '</tbody></table>'; inTable = false; } };
+  const closeAll        = () => { closeList(); closeBlockquote(); closeTable(); };
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (/^#{1} /.test(line)) { closeList(); closeBlockquote(); html += `<h1>${inline(esc(line.replace(/^# /,'')))}</h1>`; }
-    else if (/^#{2} /.test(line)) { closeList(); closeBlockquote(); html += `<h2>${inline(esc(line.replace(/^## /,'')))}</h2>`; }
-    else if (/^#{3} /.test(line)) { closeList(); closeBlockquote(); html += `<h3>${inline(esc(line.replace(/^### /,'')))}</h3>`; }
-    else if (/^[-*] /.test(line)) { closeBlockquote(); if (!inList) { html += '<ul>'; inList = true; } html += `<li>${inline(esc(line.replace(/^[-*] /,'')))}</li>`; }
-    else if (/^\d+\. /.test(line)) { closeBlockquote(); if (!inList) { html += '<ol>'; inList = true; } html += `<li>${inline(esc(line.replace(/^\d+\. /,'')))}</li>`; }
-    else if (/^> /.test(line)) { closeList(); if (!inBlockquote) { html += '<blockquote>'; inBlockquote = true; } html += `<p>${inline(esc(line.replace(/^> /,'')))}</p>`; }
-    else if (/^---/.test(line)) { closeList(); closeBlockquote(); html += '<hr>'; }
-    else if (line.trim() === '') { closeList(); closeBlockquote(); }
-    else { closeList(); closeBlockquote(); html += `<p>${inline(esc(line))}</p>`; }
+
+    // Code fence toggle
+    if (/^```/.test(line)) {
+      if (inFence) { html += '</code></pre>'; inFence = false; }
+      else {
+        closeAll();
+        const lang = esc(line.replace(/^```/, '').trim());
+        html += `<pre><code${lang ? ` data-lang="${lang}"` : ''}>`;
+        inFence = true;
+      }
+      continue;
+    }
+    if (inFence) { html += esc(line) + '\n'; continue; }
+
+    // Table row
+    if (/^\|.+\|/.test(line)) {
+      if (/^[\|\s\-:]+$/.test(line)) continue; // skip separator row
+      closeList(); closeBlockquote();
+      if (!inTable) { html += '<table><tbody>'; inTable = true; }
+      const cells = line.split('|').slice(1, -1);
+      html += '<tr>' + cells.map(c => `<td>${inline(esc(c.trim()))}</td>`).join('') + '</tr>';
+      continue;
+    }
+    closeTable();
+
+    if      (/^# /.test(line))      { closeList(); closeBlockquote(); html += `<h1>${inline(esc(line.slice(2)))}</h1>`; }
+    else if (/^## /.test(line))     { closeList(); closeBlockquote(); html += `<h2>${inline(esc(line.slice(3)))}</h2>`; }
+    else if (/^### /.test(line))    { closeList(); closeBlockquote(); html += `<h3>${inline(esc(line.slice(4)))}</h3>`; }
+    else if (/^[-*] /.test(line))   { closeBlockquote(); if (!inList)  { closeList(); html += '<ul>';  inList  = true; } html += `<li>${inline(esc(line.slice(2)))}</li>`; }
+    else if (/^\d+\. /.test(line))  { closeBlockquote(); if (!inOList) { closeList(); html += '<ol>'; inOList = true; } html += `<li>${inline(esc(line.replace(/^\d+\. /,'')))}</li>`; }
+    else if (/^> /.test(line))      { closeList(); if (!inBlockquote) { html += '<blockquote>'; inBlockquote = true; } html += `<p>${inline(esc(line.slice(2)))}</p>`; }
+    else if (/^-{3,}/.test(line))   { closeAll(); html += '<hr>'; }
+    else if (line.trim() === '')    { closeAll(); }
+    else                            { closeList(); closeBlockquote(); html += `<p>${inline(esc(line))}</p>`; }
   }
-  closeList(); closeBlockquote();
+  closeAll();
+  if (inFence) html += '</code></pre>';
   return html;
 }
 
