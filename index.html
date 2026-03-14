@@ -180,6 +180,17 @@ footer{padding:32px 0;border-top:1px solid var(--border);margin-top:40px;display
 .fl:hover{color:var(--accent)}
 footer p{font-size:11px;color:var(--dim);line-height:1.7}
 
+/* ── TIER PICKER ── */
+.tier-picker{display:none;margin-top:16px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:6px}
+.tier-picker.on{display:block}
+.tier-picker-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.tier-grid{display:flex;flex-wrap:wrap;gap:6px}
+.tier-tag{display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:4px;border:1px solid var(--border);font-size:11px;color:var(--muted);cursor:pointer;background:var(--surface);transition:border-color .15s,color .15s,background .15s;user-select:none}
+.tier-tag:hover{border-color:#3a3a3a;color:var(--text);background:var(--s2)}
+.tier-tag.selected{border-color:var(--accent2);color:var(--accent2);background:#160e09}
+.tier-dot{width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .15s}
+.tier-tag.selected .tier-dot{background:var(--accent2)}
+
 /* ── SCROLL ── */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--bg)}
@@ -295,6 +306,23 @@ footer p{font-size:11px;color:var(--dim);line-height:1.7}
       <div class="type-name">Flutter App</div>
       <div class="type-desc">Cross-platform Flutter / Dart app</div>
     </div>
+    <div class="type-card" data-type="full-stack" onclick="toggleType(this)">
+      <div class="type-icon">🏗️</div>
+      <div class="type-name">Full-Stack Solution</div>
+      <div class="type-desc">Multi-tier: mobile, web, API, infra</div>
+    </div>
+  </div>
+
+  <div class="tier-picker" id="tierPicker">
+    <div class="tier-picker-label">Select tiers in your solution <span style="color:var(--dim);font-weight:400;letter-spacing:0;text-transform:none">(pick all that apply)</span></div>
+    <div class="tier-grid">
+      <div class="tier-tag" data-tier="mobile" onclick="toggleTier(this)"><div class="tier-dot"></div>📱 Mobile App</div>
+      <div class="tier-tag" data-tier="web-admin" onclick="toggleTier(this)"><div class="tier-dot"></div>🌐 Web / Admin App</div>
+      <div class="tier-tag" data-tier="backend-api" onclick="toggleTier(this)"><div class="tier-dot"></div>⚙️ Backend API</div>
+      <div class="tier-tag" data-tier="microservices" onclick="toggleTier(this)"><div class="tier-dot"></div>🔗 Microservices</div>
+      <div class="tier-tag" data-tier="database" onclick="toggleTier(this)"><div class="tier-dot"></div>🗄️ Database / Cache</div>
+      <div class="tier-tag" data-tier="auth-service" onclick="toggleTier(this)"><div class="tier-dot"></div>🔐 Auth Service</div>
+    </div>
   </div>
 
   <div class="stack-label">Tech stack <span style="color:var(--dim);font-weight:400;letter-spacing:0;text-transform:none">(pick all that apply)</span></div>
@@ -339,6 +367,7 @@ footer p{font-size:11px;color:var(--dim);line-height:1.7}
     <div class="preset" onclick="applyPreset('enterprise')"><span class="pdot" style="background:#4fc3f7"></span>Enterprise Grade</div>
     <div class="preset" onclick="applyPreset('security')"><span class="pdot" style="background:#b39ddb"></span>Security-Critical</div>
     <div class="preset" onclick="applyPreset('flutter')"><span class="pdot" style="background:#54c5f8"></span>Flutter / Dart</div>
+    <div class="preset" onclick="applyPreset('full-stack')"><span class="pdot" style="background:#ff6b35"></span>Full-Stack</div>
     <div class="preset" onclick="applyPreset('all')"><span class="pdot" style="background:#888"></span>Everything</div>
     <div class="preset" onclick="clearAll()"><span class="pdot" style="background:#555"></span>Clear all</div>
   </div>
@@ -430,7 +459,7 @@ footer p{font-size:11px;color:var(--dim);line-height:1.7}
     <a href="https://code.claude.com/docs/en/memory" class="fl">CLAUDE.md docs</a> &nbsp;·&nbsp;
     <a href="https://github.com/github/spec-kit" class="fl">spec-kit</a>
   </p>
-  <p>ConstitutionKit v2.1.0</p>
+  <p>ConstitutionKit v2.2.0</p>
 </footer>
 
 </div><!-- /wrap -->
@@ -792,6 +821,40 @@ const PRINCIPLES = {
      rules:["All Future<T> and Stream<T> paths have explicit error handling — no unhandled Future chains.","FlutterError.onError and PlatformDispatcher.instance.onError are overridden in main() to capture and report uncaught errors to crash reporting.","Errors are modelled as sealed classes or Result types at service boundaries — no raw exceptions crossing layer boundaries.","The ErrorWidget.builder is overridden to display a branded error UI in production instead of the default red screen."],
      enforce:"Crash reporting integration verified in CI smoke test. ErrorBoundary widgets wrap all top-level routes."},
   ],
+  "Cross-Tier Architecture": [
+    {id:"api-gateway",label:"API Gateway",desc:"Single entry point for all clients — routing, auth, rate-limiting, and aggregation in one layer",
+     what:"An API Gateway centralises cross-cutting concerns so individual services stay focused on business logic.",
+     rules:["All external client traffic enters through a single API Gateway layer — clients never call internal services directly.","Authentication, rate-limiting, and request logging are handled at the gateway; downstream services trust the forwarded identity.","The gateway performs protocol translation where needed (REST → gRPC, HTTP/1.1 → HTTP/2).","Gateway configuration is version-controlled and deployed through the same CI/CD pipeline as services."],
+     enforce:"No service exposes a public endpoint outside the gateway. Gateway config reviewed in API design review."},
+    {id:"event-driven-arch",label:"Event-Driven Architecture",desc:"Services communicate via durable events — decoupled, asynchronous, and resilient",
+     what:"Event-driven communication decouples services from each other in time and space. Producers do not know consumers.",
+     rules:["State changes that affect multiple services are published as named domain events (OrderPlaced, UserVerified).","Event schemas are versioned and registered in a schema registry before production use.","Consumers are idempotent — processing the same event twice produces the same outcome.","Dead-letter queues capture failed events; alerts fire when the DLQ depth exceeds threshold."],
+     enforce:"Schema registry enforced in CI. Consumer idempotency tested in contract tests."},
+    {id:"distributed-tracing",label:"Distributed Tracing",desc:"Trace requests across all tiers with correlated trace IDs — no blind spots",
+     what:"In a multi-tier system, a single user request may touch dozens of services. Tracing stitches them together.",
+     rules:["Every request entering the system is assigned a unique trace ID propagated via standard headers (W3C TraceContext).","Each tier instruments spans for its critical operations and attaches them to the incoming trace context.","Trace sampling is configured at the gateway; downstream services propagate the sampling decision, never override it.","Slow traces and error traces are retained at 100% regardless of the global sampling rate."],
+     enforce:"Tracing instrumentation is in the definition of done for every new service. Trace coverage verified in staging load tests."},
+    {id:"shared-auth-identity",label:"Shared Auth & Identity",desc:"Single identity plane across all tiers — JWT/OIDC, short-lived tokens, no per-service auth logic",
+     what:"Auth must be consistent across every tier. A user authenticated in the mobile app is the same principal in the API, admin panel, and background services.",
+     rules:["All tiers validate the same JWT issued by a single authoritative Identity Provider (IdP).","Tokens are short-lived (≤15 min access tokens) with refresh token rotation enforced.","Service-to-service calls use short-lived machine credentials (mTLS client certs or signed JWTs) — never shared secrets.","No tier implements its own session store or user table — the IdP is the sole source of identity truth."],
+     enforce:"Auth architecture reviewed as part of ADR. Penetration testing includes cross-tier identity escalation scenarios."},
+    {id:"data-consistency",label:"Cross-Tier Data Consistency",desc:"Define consistency boundaries explicitly — eventual, causal, or strong — and enforce them",
+     what:"In distributed systems, consistency is a design choice, not a default. Every cross-tier data flow must declare its consistency guarantee.",
+     rules:["Each data flow is classified: strong (synchronous), causal (ordered events), or eventual (background sync).","Eventual consistency is acceptable only where documented; the UI acknowledges stale data to users where it matters.","Saga or outbox patterns are used for multi-service transactions — distributed 2-phase commit is prohibited.","Read models (projections, caches) are clearly labelled as derived data in code and in the API contract."],
+     enforce:"Data consistency classification documented per feature in ADR. Outbox pattern reviewed in backend PR checklist."},
+    {id:"cross-platform-ux",label:"Cross-Platform UX Consistency",desc:"Shared design tokens and behaviour contracts — consistent experience across mobile, web, and admin",
+     what:"Users experience the product as one cohesive system, regardless of the tier they access. Consistency is a feature.",
+     rules:["Design tokens (colour, typography, spacing, motion) are defined in a single shared source and consumed by all frontend tiers.","Shared terminology and labelling are governed by a product glossary — no tier invents its own names for the same concept.","Error messages, status codes, and empty states use consistent wording and visual treatment across tiers.","Feature flags apply consistently across all tiers — a flag turned off in the API is also off in the mobile and web clients."],
+     enforce:"Design token source reviewed in design system PR. Cross-tier label consistency checked in product review."},
+    {id:"monorepo-structure",label:"Monorepo Structure",desc:"One repository, clear package boundaries, shared tooling — avoid duplication across tiers",
+     what:"A well-structured monorepo keeps related code co-located, shares tooling, and enforces boundaries without the overhead of polyrepo coordination.",
+     rules:["Each tier lives in a named top-level package (apps/mobile, apps/web, services/api, services/auth, infra/).","Shared code lives in a packages/ directory; no tier may import directly from another tier's package.","A single CI pipeline runs affected packages only on change — full rebuild on main branch merges only.","Breaking changes to shared packages require a changeset entry and reviewer sign-off from affected tier owners."],
+     enforce:"CODEOWNERS enforces tier ownership. Import boundaries linted with dependency-cruiser or equivalent."},
+    {id:"deployment-orchestration",label:"Deployment Orchestration",desc:"Coordinated, ordered deployments across tiers — no partial upgrades, no broken contracts between tiers",
+     what:"Deploying a multi-tier system requires sequencing. A backend breaking change deployed before clients are updated causes outages.",
+     rules:["Breaking API changes follow expand-contract: deploy the backwards-compatible change, migrate all consumers, then contract.","Deployment pipelines declare inter-tier dependencies explicitly; a tier cannot deploy if its upstream dependency is unhealthy.","Rollback is a first-class operation — rolling back tier A automatically evaluates whether tiers B and C need to roll back too.","A deployment manifest documents the compatible version matrix across all tiers for every release."],
+     enforce:"Deployment manifest committed alongside every release. Cross-tier compatibility tested in staging before production promotion."},
+  ],
   "Collaboration": [
     {id:"git-conventions",label:"Git Conventions",desc:"Conventional commits, consistent branch naming, signed commits",
      what:"A consistent convention makes history navigable and automatable.",
@@ -822,6 +885,7 @@ const PRESETS = {
   "enterprise":["solid","clean-arch","ddd","adr","test-pyramid","contract-testing","schema-migrations","data-integrity","data-privacy","owasp","zero-trust","least-privilege","secrets-mgmt","defense-in-depth","slo-sla","iac","gitops","changelog","decision-log","pr-standards","async-first","onboarding-docs"],
   "security": ["owasp","zero-trust","least-privilege","input-validation","secrets-mgmt","defense-in-depth","data-privacy","data-integrity","fail-fast","tdd","test-isolation","changelog","adr","ci-cd"],
   "flutter":  ["flutter-widget-architecture","flutter-state-management","flutter-tdd","flutter-performance","flutter-platform-channels","flutter-dependency-injection","flutter-navigation","flutter-accessibility","flutter-error-handling","tdd","solid","dry","clean-code","yagni","accessibility","ci-cd","dependency-management","local-dev"],
+  "full-stack":["api-gateway","event-driven-arch","distributed-tracing","shared-auth-identity","data-consistency","cross-platform-ux","monorepo-structure","deployment-orchestration","api-conventions","api-versioning","circuit-breaker","observability","ci-cd","iac","zero-trust","least-privilege","contract-testing","schema-migrations","solid","dry","adr","slo-sla"],
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -831,6 +895,7 @@ const PRESETS = {
 let selectedTools = new Set(['spec-kit']);
 let selectedType  = 'web-app';
 let selectedStack = new Set();
+let selectedTiers = new Set();
 let selectedPrinciples = new Set();
 let generatedFiles = {};
 let currentView = 'raw';
@@ -873,6 +938,15 @@ function loadFromURL() {
         if (selectedStack.has(t.textContent)) t.classList.add('selected');
       });
     }
+    if (params.get('tiers')) {
+      selectedTiers = new Set(params.get('tiers').split(','));
+      document.querySelectorAll('.tier-tag').forEach(t => {
+        if (selectedTiers.has(t.dataset.tier)) t.classList.add('selected');
+      });
+      if (selectedType === 'full-stack') {
+        document.getElementById('tierPicker').classList.add('on');
+      }
+    }
     if (params.get('p')) {
       params.get('p').split(',').forEach(id => {
         selectedPrinciples.add(id);
@@ -896,6 +970,7 @@ function saveToURL() {
   params.set('tools', [...selectedTools].join(','));
   params.set('type', selectedType);
   if (selectedStack.size) params.set('stack', [...selectedStack].join(','));
+  if (selectedTiers.size) params.set('tiers', [...selectedTiers].join(','));
   if (selectedPrinciples.size) params.set('p', [...selectedPrinciples].join(','));
   const ctx       = document.getElementById('projectContext').value;
   const build     = document.getElementById('cmdBuild').value;
@@ -968,6 +1043,18 @@ function toggleType(card) {
   document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
   card.classList.add('selected');
   selectedType = card.dataset.type;
+  document.getElementById('tierPicker').classList.toggle('on', selectedType === 'full-stack');
+}
+
+function toggleTier(tag) {
+  const tier = tag.dataset.tier;
+  if (tag.classList.contains('selected')) {
+    tag.classList.remove('selected');
+    selectedTiers.delete(tier);
+  } else {
+    tag.classList.add('selected');
+    selectedTiers.add(tier);
+  }
 }
 
 function toggleStack(tag) {
@@ -1049,7 +1136,12 @@ function stackLine() {
 const TYPE_LABELS = {
   'web-app':'Web Application','microservices':'Microservices','data-pipeline':'Data Pipeline',
   'ai-system':'AI System','platform':'Platform / SDK','mobile':'Mobile App',
-  'flutter':'Flutter Application'
+  'flutter':'Flutter Application','full-stack':'Full-Stack Solution'
+};
+
+const TIER_LABELS = {
+  'mobile':'Mobile App','web-admin':'Web / Admin App','backend-api':'Backend API',
+  'microservices':'Microservices','database':'Database / Cache','auth-service':'Auth Service'
 };
 
 function buildConstitution(context) {
@@ -1089,6 +1181,12 @@ function buildConstitution(context) {
   // of the base constitution — no base content is modified (Open/Closed).
   if (selectedType === 'flutter' || selectedStack.has('Flutter')) {
     md += buildFlutterAddendum();
+  }
+
+  // Multi-tier addendum: appended when the Full-Stack Solution type is selected.
+  // Pure extension — base content unmodified (Open/Closed).
+  if (selectedType === 'full-stack') {
+    md += buildMultiTierAddendum(context, selectedTiers);
   }
 
   return md;
@@ -1275,6 +1373,12 @@ function buildClaudeMd(context) {
     md += buildFlutterClaudeAddendum();
   }
 
+  // Multi-tier addendum for CLAUDE.md: agent operating instructions for full-stack solutions.
+  // Pure extension — base content unmodified (Open/Closed).
+  if (selectedType === 'full-stack') {
+    md += buildMultiTierClaudeAddendum(selectedTiers);
+  }
+
   return md;
 }
 
@@ -1330,6 +1434,182 @@ Before marking any Flutter task complete, verify:
 - [ ] All errors are typed (no raw \`catch (e)\` that swallows context)
 - [ ] Navigation initiated only from the UI layer
 - [ ] New dependencies declared with exact version pins in \`pubspec.yaml\`
+`;
+}
+
+// ── Multi-Tier Constitution Addendum ─────────────────────────────────────────
+// Pure function: receives context (string) and tiers (Set<string>).
+// Reads no DOM state. Returns a Markdown string appended to constitution.md
+// only when project type is 'full-stack' — Open/Closed compliant extension.
+function buildMultiTierAddendum(context, tiers) {
+  const activeTiers = [...tiers].map(t => TIER_LABELS[t] || t);
+  const tierList = activeTiers.length ? activeTiers.join(', ') : 'All tiers';
+
+  let md = `
+---
+
+## Full-Stack / Multi-Tier Solution Addendum
+
+> This addendum applies to the full-stack solution composed of the following tiers: **${tierList}**.
+> It extends the core principles above with cross-tier architectural constraints.
+> Where this addendum conflicts with general principles, the more restrictive rule applies.
+
+### Solution Architecture Overview
+
+This project spans multiple tiers that must interoperate as a cohesive system while remaining independently deployable. The following constraints govern all cross-tier interactions.
+
+\`\`\`
+${tiers.has('mobile') ? '[Mobile App]           →  ' : ''}${tiers.has('web-admin') ? '[Web / Admin App]  →  ' : ''}[API Gateway]
+                                    ↓
+${tiers.has('auth-service') ? '[Auth Service]  ' : ''}${tiers.has('backend-api') ? '[Backend API]  ' : ''}${tiers.has('microservices') ? '[Microservices]' : ''}
+                                    ↓
+${tiers.has('database') ? '[Database / Cache Layer]' : '[Data Layer]'}
+\`\`\`
+
+### Cross-Tier Non-Negotiable Rules
+
+`;
+
+  if (tiers.has('mobile')) {
+    md += `#### Mobile App Tier
+
+1. **Gateway-only communication** — The mobile app calls the API Gateway exclusively; it never calls internal services or databases directly.
+2. **Optimistic UI with reconciliation** — Mobile clients may update local state optimistically, but must reconcile with server state on next successful sync.
+3. **Offline-first contract** — Features available offline must declare their offline behaviour explicitly; data synced on reconnect must handle conflict resolution.
+4. **Token refresh is silent** — The mobile app refreshes access tokens transparently; a failed refresh results in a logout event, not a crash.
+
+`;
+  }
+
+  if (tiers.has('web-admin')) {
+    md += `#### Web / Admin App Tier
+
+1. **Same identity plane** — Admin users authenticate through the same IdP as end users; admin roles are claims on the same token, not a separate auth system.
+2. **Read-your-writes consistency** — Admin actions that mutate state must confirm the updated state before returning a success response to the UI.
+3. **Audit log on all mutations** — Every state change made through the admin interface is recorded with actor identity, timestamp, and before/after values.
+4. **Feature flags respected** — Admin panels respect the same feature flag evaluations as the public-facing product; no admin backdoor bypasses feature gates.
+
+`;
+  }
+
+  if (tiers.has('backend-api')) {
+    md += `#### Backend API Tier
+
+1. **Contract-first development** — The OpenAPI specification is authored and reviewed before implementation begins. The spec is the contract; generated server stubs must conform.
+2. **No business logic at the gateway** — The API Gateway handles cross-cutting concerns (auth, rate limiting, routing); business logic lives in service handlers only.
+3. **Structured error responses** — All error responses follow a consistent schema: \`{code, message, details[]}\`. HTTP status codes are used correctly.
+4. **Pagination enforced** — Every collection endpoint returns paginated results with cursor-based continuation tokens. Unbounded queries are prohibited.
+
+`;
+  }
+
+  if (tiers.has('microservices')) {
+    md += `#### Microservices Tier
+
+1. **Service owns its data** — No two services share a database schema or table. Cross-service data needs are satisfied by API calls or event subscriptions, never direct DB queries.
+2. **Async by default for non-critical paths** — Inter-service communication for non-latency-sensitive operations uses durable message queues, not synchronous HTTP calls.
+3. **Circuit breakers everywhere** — Every synchronous service-to-service call is wrapped in a circuit breaker with configured thresholds and a tested fallback.
+4. **Health check contract** — Every service exposes \`GET /health/live\` and \`GET /health/ready\` endpoints that the orchestration layer uses for routing decisions.
+
+`;
+  }
+
+  if (tiers.has('database')) {
+    md += `#### Database / Cache Tier
+
+1. **Cache-aside pattern** — Caches are populated on read miss, not proactively. Cache-aside keeps the database as the source of truth; the cache is always stale-tolerant.
+2. **Explicit TTLs mandatory** — Every cached key has an explicit TTL. Keys with no TTL are a production incident waiting to happen.
+3. **Connection pool sizing** — Every service declares its maximum connection pool size. The sum of all pool sizes must not exceed the database's max_connections limit.
+4. **Read replicas for read-heavy paths** — Analytical and reporting queries route to read replicas only; transactional writes always go to the primary.
+
+`;
+  }
+
+  if (tiers.has('auth-service')) {
+    md += `#### Auth Service Tier
+
+1. **Single authoritative IdP** — There is one Identity Provider for the entire solution. No tier implements its own user store, session table, or password management.
+2. **Short-lived tokens** — Access tokens expire in ≤15 minutes. Refresh tokens are rotated on every use and invalidated on logout across all sessions.
+3. **Machine-to-machine via signed assertions** — Service accounts use short-lived signed JWTs or mTLS client certificates. Shared static secrets between services are prohibited.
+4. **Auth events are auditable** — Login, logout, token issuance, permission grants, and revocations are all written to an immutable audit log.
+
+`;
+  }
+
+  md += `### Cross-Tier ADR Triggers
+
+The following changes require an ADR before implementation:
+
+- Adding or removing a tier from the solution architecture
+- Changing the API Gateway provider or configuration strategy
+- Adopting a new event broker or message queue technology
+- Changing the Identity Provider or authentication protocol
+- Introducing a new inter-tier communication pattern (e.g., adding gRPC where only REST existed)
+- Changing the deployment topology (e.g., moving from monorepo to polyrepo, or consolidating services)
+
+### Deployment Version Matrix
+
+Maintain a \`deployment-matrix.md\` at the repo root documenting the compatible version combinations across all tiers for every release. This document is updated in the same PR as any breaking change.
+
+\`\`\`
+| Release | Mobile | Web/Admin | Backend API | Auth Service | Notes |
+|---------|--------|-----------|-------------|--------------|-------|
+| v1.0.0  | 1.0.x  | 1.0.x     | 1.0.x       | 1.0.x        | Initial release |
+\`\`\`
+
+`;
+  return md;
+}
+
+// ── Multi-Tier CLAUDE.md Addendum ─────────────────────────────────────────────
+// Pure function: receives tiers (Set<string>). Reads no DOM state.
+// Returns agent-specific operating instructions for full-stack solutions.
+// Injected into CLAUDE.md only when project type is 'full-stack'.
+function buildMultiTierClaudeAddendum(tiers) {
+  const activeTiers = [...tiers].map(t => TIER_LABELS[t] || t);
+  const tierList = activeTiers.length ? activeTiers.join(', ') : 'all tiers';
+
+  return `
+---
+
+## Full-Stack Solution: Agent Operating Instructions
+
+You are working on a multi-tier solution spanning: **${tierList}**.
+The following rules extend your general operating instructions and are absolute for cross-tier work.
+
+### Before making any cross-tier change
+
+1. Identify every tier affected by the change — a change to an API contract likely affects all client tiers.
+2. Check whether an ADR is required (see the Full-Stack Addendum in \`constitution.md\` for triggers).
+3. Confirm the change is backwards-compatible or coordinate a versioned rollout.
+4. Write or update the relevant contract test (API contract, event schema, or auth scope) before touching implementation.
+
+### Cross-tier communication rules
+
+- **Never bypass the API Gateway.** Client tiers call the gateway only. If you find yourself writing a direct service URL into a client, stop.
+- **Propagate trace context.** When writing any service call, ensure the W3C TraceContext headers (\`traceparent\`, \`tracestate\`) are forwarded. Do not drop them.
+- **Validate token claims at the service boundary.** Do not assume a request is authenticated because it came from an internal network. Validate the JWT on every inbound request.
+- **Schema-register events before publishing.** Before writing code that publishes a new event type, register its schema in the schema registry and get it reviewed.
+
+### Things you must never do autonomously in a full-stack project
+
+- Change an API contract (add a required field, remove a field, change a type) without checking all consumers
+- Change event schema definitions without updating the schema registry and notifying consumer teams
+- Add a new inter-service dependency without declaring it in the service's dependency manifest
+- Modify the Identity Provider configuration or token signing keys
+- Deploy a breaking change to any tier before confirming all dependent tiers are ready
+- Run database migrations across service-owned schemas without the owning team's explicit approval
+
+### Full-stack code quality checklist
+
+Before marking any cross-tier task complete, verify:
+
+- [ ] All affected API contracts are updated and versioned
+- [ ] Contract tests pass for all producer/consumer pairs touched
+- [ ] Trace context is propagated through all new code paths
+- [ ] Auth validation is in place at every new service boundary
+- [ ] The deployment-matrix.md is updated if a version boundary is crossed
+- [ ] No tier hardcodes another tier's internal URL (all routing goes through the gateway or service discovery)
 `;
 }
 
