@@ -258,6 +258,11 @@ footer p{font-size:11px;color:var(--dim);line-height:1.7}
       <div class="type-name">Mobile App</div>
       <div class="type-desc">iOS, Android, or cross-platform</div>
     </div>
+    <div class="type-card" data-type="flutter" onclick="toggleType(this)">
+      <div class="type-icon">🐦</div>
+      <div class="type-name">Flutter App</div>
+      <div class="type-desc">Cross-platform Flutter / Dart app</div>
+    </div>
   </div>
 
   <div class="stack-label">Tech stack <span style="color:var(--dim);font-weight:400;letter-spacing:0;text-transform:none">(pick all that apply)</span></div>
@@ -283,6 +288,9 @@ footer p{font-size:11px;color:var(--dim);line-height:1.7}
     <div class="stag" onclick="toggleStack(this)">Terraform</div>
     <div class="stag" onclick="toggleStack(this)">TypeScript</div>
     <div class="stag" onclick="toggleStack(this)">React Native</div>
+    <div class="stag" onclick="toggleStack(this)">Flutter</div>
+    <div class="stag" onclick="toggleStack(this)">Dart</div>
+    <div class="stag" onclick="toggleStack(this)">Firebase</div>
     <div class="stag" onclick="toggleStack(this)">LangChain</div>
     <div class="stag" onclick="toggleStack(this)">Anthropic API</div>
   </div>
@@ -298,6 +306,7 @@ footer p{font-size:11px;color:var(--dim);line-height:1.7}
     <div class="preset" onclick="applyPreset('startup')"><span class="pdot" style="background:#ff6b35"></span>Startup Speed</div>
     <div class="preset" onclick="applyPreset('enterprise')"><span class="pdot" style="background:#4fc3f7"></span>Enterprise Grade</div>
     <div class="preset" onclick="applyPreset('security')"><span class="pdot" style="background:#b39ddb"></span>Security-Critical</div>
+    <div class="preset" onclick="applyPreset('flutter')"><span class="pdot" style="background:#54c5f8"></span>Flutter / Dart</div>
     <div class="preset" onclick="applyPreset('all')"><span class="pdot" style="background:#888"></span>Everything</div>
     <div class="preset" onclick="clearAll()"><span class="pdot" style="background:#555"></span>Clear all</div>
   </div>
@@ -705,6 +714,44 @@ const PRINCIPLES = {
      rules:["Significant technical decisions use ADRs.","Post-mortems are written within 48 hours of every Severity 1 incident.","Decision documents are linked from the relevant code or configuration.","RFCs are used for cross-team proposals; they have explicit comment periods."],
      enforce:"Architecture review gates reference the decision log. Post-mortem completion tracked."},
   ],
+  "Flutter & Dart": [
+    {id:"flutter-widget-architecture",label:"Widget Architecture",desc:"Separate presentational widgets from business logic — never put logic in build()",
+     what:"Flutter's widget tree is a pure render description. Business logic, state management, and side effects belong in dedicated layers, not inside widget build methods.",
+     rules:["Widgets are responsible solely for describing UI structure — they delegate events upward and receive data downward.","Business logic lives exclusively in BLoCs, Cubits, ViewModels, or equivalent service objects — never inside StatefulWidget or build().","No direct API calls, repository reads, or domain decisions inside a widget class.","Prefer StatelessWidget over StatefulWidget; reach for StatefulWidget only when local ephemeral UI state is required (e.g., animation controllers)."],
+     enforce:"Architecture layer linting via custom lint rules or code review checklist verifying no I/O in build(). Widget tests must mock all state providers."},
+    {id:"flutter-state-management",label:"State Management",desc:"Single source of truth per feature; predictable, testable state transitions",
+     what:"State is explicit, immutable where possible, and flows unidirectionally. No widget reads from multiple conflicting sources for the same logical state.",
+     rules:["Choose one state management approach per project (BLoC/Cubit, Riverpod, or Provider) and apply it consistently — no mixing of patterns.","State objects are immutable data classes; transitions are functions, not mutations.","UI state and domain state are separated — loading/error flags belong to UI state objects, not domain models.","State is injected into the widget tree at the lowest viable ancestor, not globally unless truly global."],
+     enforce:"State management layer reviewed for consistency in every PR. Unit tests cover every state transition in isolation."},
+    {id:"flutter-tdd",label:"Flutter TDD",desc:"Widget tests, unit tests, and integration tests — red, green, refactor in Dart",
+     what:"Tests are written before implementation, following the TDD cycle. Flutter provides three test levels; all three are used proportionally.",
+     rules:["Write a failing test before any production Dart code — no exceptions for 'simple' widgets or services.","Unit tests cover BLoCs, Cubits, repositories, and service classes in isolation using fakes, not mocks where possible.","Widget tests verify that widgets render and respond to state correctly without requiring a device or emulator.","Integration tests cover critical user journeys end-to-end on a real device or emulator; kept minimal due to execution cost."],
+     enforce:"CI runs flutter test on every PR. Minimum coverage thresholds enforced. No PR merged without tests for new behaviour."},
+    {id:"flutter-performance",label:"Flutter Performance",desc:"60/120 fps by default — no jank, no unnecessary rebuilds, profile before optimising",
+     what:"Flutter's rendering pipeline gives 60–120 fps by default. Uncontrolled widget rebuilds and synchronous work on the UI thread are the primary causes of jank.",
+     rules:["Never perform I/O, heavy computation, or blocking operations on the main isolate — use Isolate, compute(), or async/await with proper cancellation.","Use const constructors for widgets that never change; the analyzer warning 'prefer_const_constructors' is treated as an error.","Profile with Flutter DevTools before any optimisation claim — no speculative performance work.","Identify and eliminate unnecessary widget rebuilds using the Widget Rebuild Tracker before shipping a release."],
+     enforce:"Flutter DevTools profile attached to performance-related PRs. const constructors enforced by linting rules in analysis_options.yaml."},
+    {id:"flutter-platform-channels",label:"Platform Channels",desc:"Wrap all native platform code behind a Dart interface — never call platform channels directly from UI",
+     what:"Platform channel calls are the boundary between Dart and native code (Kotlin/Swift). This boundary must be explicit, abstracted, and tested.",
+     rules:["All MethodChannel and EventChannel calls are encapsulated in a dedicated platform service class implementing a Dart interface.","UI and business logic layers consume the Dart interface only — they are never aware of channel names or method strings.","Platform channel implementations are testable via mock implementations of the Dart interface.","Each platform channel method call is wrapped in error handling — PlatformException is caught and translated to a domain error type."],
+     enforce:"Platform service interfaces are in lib/core/platform/. Implementations are in platform-specific packages. Integration tests validate real channel behaviour."},
+    {id:"flutter-dependency-injection",label:"Dependency Injection",desc:"Inject dependencies; never instantiate services inside widgets or BLoCs",
+     what:"Hard-coded instantiation of services inside widgets or state managers creates untestable, tightly coupled code. All dependencies are injected.",
+     rules:["Services, repositories, and external clients are never instantiated with `new` inside widgets, BLoCs, or Cubits.","Dependency injection is managed at app initialisation (e.g., get_it, Riverpod providers, or manual injection at the widget tree root).","The dependency graph is explicit and documentable — circular dependencies are a compile-time violation.","Test doubles are injected in tests via the same injection mechanism used in production."],
+     enforce:"Linting rule or code review prohibits instantiation of non-value objects inside build() or event handlers. DI setup is in lib/di/ or lib/injection.dart."},
+    {id:"flutter-navigation",label:"Navigation & Routing",desc:"Declarative, typed routing — no magic strings, no direct Navigator.push in business logic",
+     what:"Navigation is part of the UI layer. Routes are typed, named constants — never raw strings scattered across the codebase.",
+     rules:["All routes are declared in a single routing configuration file (e.g., using go_router, auto_route, or a custom named-route map).","Navigation calls originate only from the UI layer — BLoCs and services emit navigation events; widgets respond to them.","Route parameters are typed — passing data through navigation uses defined types, not dynamic or Object.","Deep links are handled through the routing layer, not by intercepting raw URIs in widget lifecycle methods."],
+     enforce:"Routing configuration reviewed for completeness on every PR that adds a new screen. Navigation in non-UI code is a blocking violation."},
+    {id:"flutter-accessibility",label:"Flutter Accessibility",desc:"Semantics tree, sufficient contrast, minimum touch targets — accessible by default",
+     what:"Flutter's Semantics widget and built-in Material/Cupertino components provide accessibility primitives. They must be used correctly, not worked around.",
+     rules:["All interactive elements have a Semantics label — either via Semantics widget, built-in widget semanticsLabel, or Tooltip.","Touch targets are a minimum of 48×48dp (Material guideline) — never smaller unless a documented exception is recorded.","Colour contrast meets WCAG 2.1 AA: 4.5:1 for body text, 3:1 for large text and UI components.","Accessibility is validated with Flutter's Accessibility Scanner and the semanticsDebugger in development."],
+     enforce:"Accessibility checklist in PR template for any screen change. flutter_test accessibility matchers used in widget tests."},
+    {id:"flutter-error-handling",label:"Flutter Error Handling",desc:"Catch and handle all errors at boundaries — never let unhandled exceptions reach the framework",
+     what:"Unhandled exceptions in Flutter either crash the app or produce silent failures. Error handling is explicit at every async boundary and platform integration point.",
+     rules:["All Future<T> and Stream<T> paths have explicit error handling — no unhandled Future chains.","FlutterError.onError and PlatformDispatcher.instance.onError are overridden in main() to capture and report uncaught errors to crash reporting.","Errors are modelled as sealed classes or Result types at service boundaries — no raw exceptions crossing layer boundaries.","The ErrorWidget.builder is overridden to display a branded error UI in production instead of the default red screen."],
+     enforce:"Crash reporting integration verified in CI smoke test. ErrorBoundary widgets wrap all top-level routes."},
+  ],
   "Collaboration": [
     {id:"git-conventions",label:"Git Conventions",desc:"Conventional commits, consistent branch naming, signed commits",
      what:"A consistent convention makes history navigable and automatable.",
@@ -734,6 +781,7 @@ const PRESETS = {
   "startup":  ["kiss","yagni","dry","clean-code","tdd","ci-cd","observability","readme-driven","git-conventions","pr-standards","definition-of-done","feature-flags","local-dev","inner-loop","dependency-management"],
   "enterprise":["solid","clean-arch","ddd","adr","test-pyramid","contract-testing","schema-migrations","data-integrity","data-privacy","owasp","zero-trust","least-privilege","secrets-mgmt","defense-in-depth","slo-sla","iac","gitops","changelog","decision-log","pr-standards","async-first","onboarding-docs"],
   "security": ["owasp","zero-trust","least-privilege","input-validation","secrets-mgmt","defense-in-depth","data-privacy","data-integrity","fail-fast","tdd","test-isolation","changelog","adr","ci-cd"],
+  "flutter":  ["flutter-widget-architecture","flutter-state-management","flutter-tdd","flutter-performance","flutter-platform-channels","flutter-dependency-injection","flutter-navigation","flutter-accessibility","flutter-error-handling","tdd","solid","dry","clean-code","yagni","accessibility","ci-cd","dependency-management","local-dev"],
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -907,6 +955,19 @@ function updateGenLabel() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// UTILS (file operations)
+// ═══════════════════════════════════════════════════════════════════
+
+// DRY fix: single download utility consumed by all download buttons
+function downloadFile(filename, content) {
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // GENERATORS
 // ═══════════════════════════════════════════════════════════════════
 
@@ -925,7 +986,8 @@ function stackLine() {
 
 const TYPE_LABELS = {
   'web-app':'Web Application','microservices':'Microservices','data-pipeline':'Data Pipeline',
-  'ai-system':'AI System','platform':'Platform / SDK','mobile':'Mobile App'
+  'ai-system':'AI System','platform':'Platform / SDK','mobile':'Mobile App',
+  'flutter':'Flutter Application'
 };
 
 function buildConstitution(context) {
@@ -959,7 +1021,114 @@ function buildConstitution(context) {
   }
 
   md += `---\n\n## Conflict resolution\n\nWhen principles conflict, use the following priority order:\n\n1. **Security** — never compromise on security for speed or convenience.\n2. **Data integrity** — losing or corrupting user data is never acceptable.\n3. **Reliability** — a feature that is unreliable is worse than no feature.\n4. **Maintainability** — prefer the solution the next engineer can understand.\n5. **Performance** — optimise only when measurement shows it is necessary.\n\nDocument any deliberate trade-off in an ADR.\n\n---\n\n## Amendments\n\nThis constitution evolves with the project. To propose a change:\n\n1. Open a pull request with the amendment and your reasoning.\n2. All active contributors must acknowledge the change.\n3. Merge only after consensus.\n\nChanges are tracked in git history — the \`why\` is as important as the \`what\`.\n`;
+
+  // Flutter addendum: appended when the Flutter project type is selected
+  // or when Flutter is included in the selected stack. This is a pure extension
+  // of the base constitution — no base content is modified (Open/Closed).
+  if (selectedType === 'flutter' || selectedStack.has('Flutter')) {
+    md += buildFlutterAddendum();
+  }
+
   return md;
+}
+
+// ── Flutter Constitution Addendum ────────────────────────────────────────────
+// Pure function: takes no arguments, reads no DOM state, returns a Markdown
+// string. This keeps it independently testable and composable.
+// Appended to the base constitution only when project type is Flutter or
+// Flutter is in the selected stack — Open/Closed compliant extension.
+function buildFlutterAddendum() {
+  return `
+---
+
+## Flutter / Dart Platform Addendum
+
+> This addendum applies to all Flutter and Dart code in this project. It extends the core principles above with platform-specific constraints. Where this addendum conflicts with the general principles, the more restrictive rule applies.
+
+### Architecture Layer Hierarchy
+
+All Flutter code follows this strict layer hierarchy. No layer may bypass or reverse it:
+
+\`\`\`
+[Widgets / UI]  →  [State Managers: BLoC / Cubit / ViewModel]  →  [Repositories / Services]  →  [Data Sources / Platform Channels / APIs]
+\`\`\`
+
+- **Widgets**: Describe the UI and delegate events. Zero business logic.
+- **State Managers**: Orchestrate domain operations, own UI state transitions.
+- **Repositories / Services**: Encapsulate domain rules and data access contracts.
+- **Data Sources**: Remote APIs, local databases (Drift/Hive/Isar), platform channels.
+
+### Directory Structure Convention
+
+\`\`\`
+lib/
+├── core/
+│   ├── di/            — Dependency injection setup
+│   ├── platform/      — Platform channel abstractions (Dart interfaces)
+│   ├── router/        — Route declarations and navigation configuration
+│   ├── theme/         — Design tokens: colours, typography, spacing
+│   └── error/         — Error models and global error handling setup
+├── features/
+│   └── <feature>/
+│       ├── data/      — Repository implementations, data source adapters
+│       ├── domain/    — Entities, repository interfaces, use cases
+│       └── presentation/
+│           ├── bloc/  — BLoC / Cubit / ViewModel classes
+│           └── ui/    — Widgets and screens for this feature
+└── main.dart          — App entry point; initialises DI, error handlers, router
+
+test/
+├── unit/              — BLoC, service, and repository unit tests
+├── widget/            — Widget tests (no device required)
+└── integration_test/  — Critical user journey tests (device or emulator)
+\`\`\`
+
+### Flutter-Specific Non-Negotiable Rules
+
+1. **No logic in \`build()\`** — \`build()\` returns a widget tree description only. Conditional rendering may reference state passed in, but no computation, I/O, or decisions are made inside it.
+
+2. **\`const\` by default** — Every widget that does not depend on runtime data MUST use a \`const\` constructor. The analyzer rule \`prefer_const_constructors\` is enforced as an error, not a warning.
+
+3. **Typed errors cross boundaries** — No \`dynamic\` exception propagates from a data layer into the domain or presentation layer. All errors are mapped to sealed error classes at the boundary where they originate.
+
+4. **Isolate heavy work** — Any operation taking more than ~4ms (JSON parsing of large payloads, image processing, encryption) MUST run in a separate \`Isolate\` or via \`compute()\`. Blocking the main isolate is a production incident.
+
+5. **No \`Navigator.push\` in BLoCs** — Navigation is a side effect emitted from state, handled by the UI layer. BLoCs emit navigation events; widgets observe and act.
+
+6. **Platform channels are interface-bound** — The raw channel name string appears in exactly one file per platform integration. All callers use the Dart interface.
+
+### Flutter CI Pipeline Requirements
+
+\`\`\`bash
+flutter analyze               # Zero warnings in CI; errors are blocking
+flutter test                  # Unit + widget tests; minimum coverage threshold enforced
+flutter test integration_test # Integration tests on CI device/emulator
+flutter build apk --release   # Verify release build compiles without error
+flutter build ios --release --no-codesign  # Verify iOS release build
+dart pub outdated             # Dependency audit; critical CVEs block merge
+\`\`\`
+
+### State Management Contract
+
+The chosen state management approach for this project is declared here and applied without exception:
+
+> **State Management Approach**: \`[DECLARE: BLoC / Cubit / Riverpod / Provider]\`
+>
+> All state transitions are expressed as pure functions mapping (State, Event) → State.
+> UI observes state streams; it never calls methods that mutate state directly.
+
+### Flutter-Specific ADR Triggers
+
+The following changes require an ADR before implementation:
+
+- Adopting a new state management library or pattern
+- Adding a new platform channel integration
+- Changing the navigation strategy or routing library
+- Introducing a new flavour / build configuration
+- Adopting code generation tooling (build_runner rules, etc.)
+- Adding a new platform target (web, desktop, embedded)
+
+`;
 }
 
 function buildClaudeMd(context) {
@@ -1038,7 +1207,68 @@ function buildClaudeMd(context) {
   md += `## Code quality checklist\n\nBefore marking any task complete, verify:\n\n- [ ] Tests pass locally\n- [ ] New behaviour is covered by tests\n- [ ] No new lint errors introduced\n- [ ] No hardcoded secrets, magic numbers, or debug output left in\n- [ ] Relevant documentation updated\n- [ ] Changes are scoped to the task — no unrelated edits\n\n---\n\n`;
 
   md += `## Behavioural guidelines\n\n- **Clarity over cleverness.** Write code the next engineer can understand in 30 seconds.\n- **One question at a time.** If something is unclear, ask one targeted question. Do not ask multiple questions at once.\n- **Surface trade-offs.** When two principles conflict or there are multiple valid approaches, say so explicitly and recommend one.\n- **No hallucinated APIs.** If you are unsure whether a library function exists or behaves a certain way, say so and suggest verification before using it.\n- **Scope discipline.** Do not expand scope without asking. A task to fix a bug does not authorise refactoring the surrounding code.\n- **Fail loudly.** If you are blocked, uncertain, or see something that should concern the team, say so immediately.\n\n---\n\n## When in doubt\n\n1. Re-read the relevant principle in \`constitution.md\`.\n2. Ask the user one targeted clarifying question.\n3. Default to the simpler, safer, more reversible option.\n4. Document the decision and reasoning in your response.\n`;
+
+  // Flutter addendum for CLAUDE.md: agent-specific Flutter instructions
+  if (selectedType === 'flutter' || selectedStack.has('Flutter')) {
+    md += buildFlutterClaudeAddendum();
+  }
+
   return md;
+}
+
+// ── Flutter CLAUDE.md Addendum ───────────────────────────────────────────────
+// Pure function returning Flutter-specific agent operating instructions.
+// Injected into CLAUDE.md only when the Flutter project type or stack is active.
+function buildFlutterClaudeAddendum() {
+  return `
+---
+
+## Flutter / Dart: Agent Operating Instructions
+
+You are working on a Flutter application. The following rules are absolute and override general conventions when they conflict.
+
+### Architecture enforcement
+
+- **Never write business logic inside a widget.** If you find yourself writing a conditional branch, a repository call, or a domain decision inside \`build()\` or a widget's \`initState()\`, stop. Extract it to the appropriate BLoC/Cubit/ViewModel layer and start again.
+- **Dependency injection only.** Do not instantiate services with \`new\` or by calling a constructor directly inside any widget or state manager. Use the project's DI mechanism (check \`lib/core/di/\`).
+- **const everywhere.** Every widget that can be \`const\` must be. Add the \`const\` keyword; do not leave the analyzer warning unresolved.
+
+### Before writing any Flutter code
+
+1. Identify which layer the new code belongs to (widget / state manager / repository / data source).
+2. Confirm there is no existing widget, service, or utility that already satisfies the requirement (DRY).
+3. Write the test first: unit test for non-UI logic, widget test for UI changes.
+4. If adding a platform channel or new dependency, check whether an ADR is required before proceeding.
+
+### Flutter commands for this project
+
+\`\`\`bash
+flutter analyze          # Must report zero issues before any commit
+flutter test             # Run after every non-trivial change
+flutter test integration_test  # Run before marking a feature complete
+flutter pub get          # After any pubspec.yaml change
+\`\`\`
+
+### Things you must never do autonomously in a Flutter project
+
+- Modify \`pubspec.yaml\` to add or remove dependencies without asking
+- Add a new platform channel without first proposing the Dart interface contract
+- Change the state management approach or introduce a second approach
+- Modify \`lib/core/router/\` without showing the proposed route change first
+- Modify any platform-specific code (\`android/\`, \`ios/\`, \`macos/\`, \`windows/\`, \`linux/\`, \`web/\`) without explicit instruction
+
+### Flutter code quality checklist
+
+Before marking any Flutter task complete, verify:
+
+- [ ] \`flutter analyze\` reports zero issues
+- [ ] \`flutter test\` passes with no failures
+- [ ] No logic in \`build()\` methods
+- [ ] All new widgets use \`const\` where possible
+- [ ] All errors are typed (no raw \`catch (e)\` that swallows context)
+- [ ] Navigation initiated only from the UI layer
+- [ ] New dependencies declared with exact version pins in \`pubspec.yaml\`
+`;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1117,11 +1347,7 @@ function renderResult() {
     // download btn
     const dl = document.createElement('button'); dl.className = 'btn-act';
     dl.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3.5 5.5L6 8l2.5-2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M2 10h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Download ${filename}`;
-    dl.onclick = () => {
-      const blob = new Blob([document.getElementById('ed-' + key).value], { type: 'text/markdown;charset=utf-8' });
-      const url = URL.createObjectURL(blob); const a = document.createElement('a');
-      a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
-    };
+    dl.onclick = () => downloadFile(filename, document.getElementById('ed-' + key).value);
     actEl.appendChild(dl);
   });
 
@@ -1131,9 +1357,7 @@ function renderResult() {
     dlAll.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3.5 5.5L6 8l2.5-2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M2 10h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Download all`;
     dlAll.onclick = () => keys.forEach(k => {
       const { filename } = generatedFiles[k];
-      const blob = new Blob([document.getElementById('ed-' + k).value], { type: 'text/markdown;charset=utf-8' });
-      const url = URL.createObjectURL(blob); const a = document.createElement('a');
-      a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+      downloadFile(filename, document.getElementById('ed-' + k).value);
     });
     actEl.appendChild(dlAll);
   }
